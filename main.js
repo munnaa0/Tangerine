@@ -264,6 +264,11 @@ window.onload = () => {
     setTimeout(() => {
       const seal = letterCard.querySelector(".seal-body");
       if (seal) seal.classList.add("stamped");
+      // Reveal countdown section after 1s
+      setTimeout(() => {
+        const countdownSection = document.getElementById("section-countdown");
+        if (countdownSection) countdownSection.classList.add("revealed");
+      }, 1000);
     }, sealDelay);
   }
 
@@ -306,6 +311,189 @@ window.onload = () => {
       setTimeout(() => sparkle.remove(), 800);
     });
   }
+  // ──────────────────────────────────────────────────────────────────────────
+
+  // ── Countdown / Relationship Timer ───────────────────────────────────────
+  (function initCountdown() {
+    const startDate = new Date(2018, 0, 24, 0, 0, 0);
+    const CIRCUMFERENCE = 2 * Math.PI * 54; // r=54 in the SVG
+
+    const ids = [
+      "cd-years",
+      "cd-months",
+      "cd-days",
+      "cd-hours",
+      "cd-minutes",
+      "cd-seconds",
+    ];
+    const els = {};
+    ids.forEach((id) => {
+      els[id] = document.getElementById(id);
+    });
+
+    // Bail out if countdown section is missing
+    if (!els["cd-years"]) return;
+
+    const cards = document.querySelectorAll(".countdown-card");
+    const particleContainer = document.getElementById("countdown-particles");
+    let prevValues = {};
+
+    // ── FEATURE 2: Update progress ring dashoffset ─────────────────
+    function setRingProgress(card, value, max) {
+      const ring = card.querySelector(".progress-ring__fill");
+      if (!ring) return;
+      const progress = Math.min(value / max, 1);
+      const offset = CIRCUMFERENCE * (1 - progress);
+      ring.style.strokeDasharray = CIRCUMFERENCE;
+      ring.style.strokeDashoffset = offset;
+    }
+
+    // ── FEATURE 3: Cosmic particle burst ───────────────────────────
+    function emitParticles(card) {
+      if (!particleContainer) return;
+      const rect = card.getBoundingClientRect();
+      const sectionRect = particleContainer.getBoundingClientRect();
+      const cx = rect.left - sectionRect.left + rect.width / 2;
+      const cy = rect.top - sectionRect.top + rect.height / 2;
+      const colors = ["#d4af37", "#ffd1dc", "#fff2cc", "#b76e79", "#f0d68a"];
+
+      for (let i = 0; i < 8; i++) {
+        const p = document.createElement("div");
+        p.className = "cd-particle";
+        const angle = (Math.PI * 2 * i) / 8;
+        const dist = 40 + Math.random() * 50;
+        p.style.setProperty("--dx", Math.cos(angle) * dist + "px");
+        p.style.setProperty("--dy", Math.sin(angle) * dist + "px");
+        p.style.left = cx + "px";
+        p.style.top = cy + "px";
+        p.style.background = colors[Math.floor(Math.random() * colors.length)];
+        p.style.boxShadow = "0 0 4px " + p.style.background;
+        particleContainer.appendChild(p);
+        p.addEventListener("animationend", () => p.remove());
+      }
+    }
+
+    // ── Core update ────────────────────────────────────────────────
+    function update() {
+      const now = new Date();
+      let years = now.getFullYear() - startDate.getFullYear();
+      let months = now.getMonth() - startDate.getMonth();
+      let days = now.getDate() - startDate.getDate();
+      let hours = now.getHours() - startDate.getHours();
+      let minutes = now.getMinutes() - startDate.getMinutes();
+      let seconds = now.getSeconds() - startDate.getSeconds();
+
+      if (seconds < 0) {
+        seconds += 60;
+        minutes -= 1;
+      }
+      if (minutes < 0) {
+        minutes += 60;
+        hours -= 1;
+      }
+      if (hours < 0) {
+        hours += 24;
+        days -= 1;
+      }
+      if (days < 0) {
+        const prevMonthDays = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          0,
+        ).getDate();
+        days += prevMonthDays;
+        months -= 1;
+      }
+      if (months < 0) {
+        months += 12;
+        years -= 1;
+      }
+
+      const vals = {
+        "cd-years": years,
+        "cd-months": months,
+        "cd-days": days,
+        "cd-hours": hours,
+        "cd-minutes": minutes,
+        "cd-seconds": seconds,
+      };
+
+      // Update each value element
+      Object.entries(vals).forEach(([id, val]) => {
+        const el = els[id];
+        if (!el) return;
+        const display =
+          id === "cd-hours" || id === "cd-minutes" || id === "cd-seconds"
+            ? String(val).padStart(2, "0")
+            : String(val);
+
+        if (prevValues[id] !== val) {
+          el.textContent = display;
+          // FEATURE 1: Digit roller animation
+          el.classList.remove("tick");
+          void el.offsetWidth; // force reflow
+          el.classList.add("tick");
+        }
+      });
+
+      // Update progress rings (FEATURE 2)
+      cards.forEach((card) => {
+        const unit = card.dataset.unit;
+        const max = parseInt(card.dataset.max, 10);
+        const idKey = "cd-" + unit;
+        if (vals[idKey] !== undefined) {
+          setRingProgress(card, vals[idKey], max);
+        }
+      });
+
+      // FEATURE 3: Particle burst on second change
+      const secondsCard = document.querySelector(
+        '.countdown-card[data-unit="seconds"]',
+      );
+      if (
+        secondsCard &&
+        prevValues["cd-seconds"] !== undefined &&
+        prevValues["cd-seconds"] !== vals["cd-seconds"]
+      ) {
+        emitParticles(secondsCard);
+        // Also pulse the seconds card
+        secondsCard.classList.remove("pulse");
+        void secondsCard.offsetWidth;
+        secondsCard.classList.add("pulse");
+      }
+
+      prevValues = { ...vals };
+    }
+
+    update();
+    setInterval(update, 1000);
+
+    // ── FEATURE 5: Interactive 3D Tilt ──────────────────────────────
+    cards.forEach((card) => {
+      card.addEventListener("mouseenter", () =>
+        card.classList.add("tilt-active"),
+      );
+      card.addEventListener("mouseleave", () => {
+        card.classList.remove("tilt-active");
+        card.style.transform = "";
+      });
+      card.addEventListener("mousemove", (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = ((y - centerY) / centerY) * -8;
+        const rotateY = ((x - centerX) / centerX) * 8;
+        card.style.transform =
+          "perspective(600px) rotateX(" +
+          rotateX +
+          "deg) rotateY(" +
+          rotateY +
+          "deg) scale(1.03)";
+      });
+    });
+  })();
   // ──────────────────────────────────────────────────────────────────────────
 
   let count = 3;
