@@ -161,7 +161,8 @@ window.onload = () => {
     candleWrapper.classList.add("hidden");
 
     // Fade out overlay background to reveal the planet behind the text
-    overlay.style.backgroundColor = "transparent";
+    overlay.classList.add("fade-bg");
+    overlay.style.backgroundColor = "transparent"; // Keep in case it was used
 
     // Show Happy Birthday text
     birthdayText.classList.add("show");
