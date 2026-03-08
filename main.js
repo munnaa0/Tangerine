@@ -177,10 +177,57 @@ window.onload = () => {
     // Fade out the whole overlay
     setTimeout(() => {
       overlay.classList.add("fade-out");
+
+      // Reveal the scrollable story layer once the overlay has faded (~1.5 s transition)
+      setTimeout(() => {
+        const scrollWrapper = document.getElementById("scroll-wrapper");
+        if (scrollWrapper) scrollWrapper.classList.add("visible");
+      }, 1600);
     }, 4500);
   }
 
   blowBtn.addEventListener("click", triggerBlowSequence);
+
+  // ── Gift Box Interaction ───────────────────────────────────────────────────
+  const giftBox = document.querySelector(".gift-box");
+  const giftBoxWrapper = document.querySelector(".gift-box-wrapper");
+  const giftMsg = document.querySelector(".gift-message");
+  const giftHint = document.querySelector(".gift-hint");
+  const heartBurst = document.querySelector(".heart-burst");
+
+  if (giftBox) {
+    function openGift() {
+      if (giftBox.classList.contains("open")) return;
+      giftBox.classList.add("open");
+      giftBox.setAttribute("aria-pressed", "true");
+
+      if (giftHint) {
+        giftHint.style.opacity = "0";
+        giftHint.style.pointerEvents = "none";
+      }
+
+      if (heartBurst) heartBurst.classList.add("active");
+
+      // Once the lid has flipped (~700 ms), collapse the box and reveal the
+      // message simultaneously so the text appears in the envelope's place
+      setTimeout(() => {
+        if (giftBoxWrapper) giftBoxWrapper.classList.add("collapse");
+        if (giftMsg) {
+          giftMsg.classList.add("show");
+          giftMsg.setAttribute("aria-hidden", "false");
+        }
+      }, 800);
+    }
+
+    giftBox.addEventListener("click", openGift);
+    giftBox.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openGift();
+      }
+    });
+  }
+  // ──────────────────────────────────────────────────────────────────────────
 
   let count = 3;
   const interval = setInterval(() => {

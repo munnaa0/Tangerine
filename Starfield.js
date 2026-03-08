@@ -100,11 +100,11 @@ export class Starfield {
 
     // Main Text
     ctx.font = 'bold 80px "Times New Roman", Arial, sans-serif';
-    ctx.fillText("Happy 23rd Birthday", cw / 2, ch / 2 - 40);
+    ctx.fillText("The Galaxy Shines for You Today", cw / 2, ch / 2 - 40);
 
     // Sub Text
     ctx.font = 'italic 70px "Times New Roman", Arial, sans-serif';
-    ctx.fillText("My Tangerine", cw / 2, ch / 2 + 50);
+    ctx.fillText('" My Universe, My Tangerine "', cw / 2, ch / 2 + 50);
 
     // 3. Extract pixel data to map to 3D points
     const imgData = ctx.getImageData(0, 0, cw, ch).data;
