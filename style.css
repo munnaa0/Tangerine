@@ -30,16 +30,26 @@ html {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background-color: #ffffff; /* Match the provided image background */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition:
-    opacity 1.5s ease-in-out,
-    background-color 1.5s ease-in-out;
-  color: #000;
+  transition: opacity 1.5s ease-in-out;
+  color: #fff;
   font-family: "Comic Sans MS", cursive, sans-serif;
+}
+
+#intro-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, #2a1f1f 0%, #030308 60%);
+  z-index: -1;
+  transition: opacity 2s ease-in-out;
+}
+
+#intro-overlay.fade-bg::before {
+  opacity: 0;
 }
 
 #intro-overlay.fade-out {
@@ -48,8 +58,10 @@ html {
 }
 
 #intro-instruction {
+  position: absolute;
+  top: 5%;
   font-size: 3rem;
-  margin-bottom: 20px;
+  margin-bottom: 1;
   max-height: 200px;
   overflow: hidden;
   transition:
@@ -59,9 +71,11 @@ html {
 }
 
 #countdown {
+  position: absolute;
+  top: calc(10% + 5rem);
   font-size: 4rem;
   font-weight: bold;
-  margin-bottom: 50px;
+  margin-bottom: 0;
   max-height: 200px;
   overflow: hidden;
   transition:
@@ -77,6 +91,7 @@ html {
   height: 200px;
   margin-bottom: 40px;
   transition: opacity 0.5s ease;
+  filter: drop-shadow(0 0 50px rgba(255, 165, 0, 0.6));
 }
 
 .candle-container.hidden {
