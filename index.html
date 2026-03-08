@@ -4,9 +4,9 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Happy Birthday Cutie</title>
-        <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap"
+        <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Lora:ital@1&display=swap"
               rel="stylesheet">
-        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="style.css?v=2">
         <!-- Import map for Three.js -->
         <script type="importmap">
         {
@@ -33,6 +33,42 @@
             <button id="blow-candle-btn" aria-label="Blow the candle">&#x1F382; Blow the Candle!</button>
             <h1 id="happy-birthday-text">Happy Birthday Tanjila!</h1>
         </div>
+        <!-- ── Scrollable Story Layer ──────────────────────────────────────── -->
+        <div id="scroll-wrapper">
+            <!-- First viewport: breathes after intro. Scroll indicator appears here. -->
+            <div class="scroll-spacer">
+                <div class="scroll-indicator" aria-hidden="true">
+                    <span></span>
+                </div>
+            </div>
+            <!-- Section 1: The Gift -->
+            <section class="gift-section" id="section-gift">
+                <div class="gift-content">
+                    <h2 class="gift-title">A Gift for My Cutie </h2>
+                    <div class="gift-box-wrapper">
+                        <div class="gift-box"
+                             role="button"
+                             tabindex="0"
+                             aria-pressed="false"
+                             aria-label="Open gift message">
+                            <div class="gift-lid"></div>
+                            <div class="gift-ribbon"></div>
+                            <div class="gift-body"></div>
+                        </div>
+                        <p class="gift-hint">Tap to open ✨</p>
+                        <div class="heart-burst" aria-hidden="true">
+                            <span></span><span></span><span></span><span></span><span></span>
+                            <span></span><span></span><span></span><span></span><span></span>
+                        </div>
+                    </div>
+                    <div class="gift-message" aria-hidden="true">
+                        Happy Birthday, Sweetie!💖 Today, the world celebrates you -
+                        but for me, every single day with you is a celebration.
+                    </div>
+                </div>
+            </section>
+        </div>
+        <!-- ──────────────────────────────────────────────────────────────────── -->
         <canvas id="webgl-canvas"></canvas>
         <script type="module" src="main.js"></script>
     </body>
