@@ -124,63 +124,82 @@ window.onload = () => {
   const instruction = document.getElementById("intro-instruction");
   const countdownEl = document.getElementById("countdown");
   const candleWrapper = document.getElementById("candle-wrapper");
+  const candlePrompt = document.getElementById("candle-prompt");
   const birthdayText = document.getElementById("happy-birthday-text");
+  const blowBtn = document.getElementById("blow-candle-btn");
   const bgm = document.getElementById("bgm");
+
+  // Called after the user clicks "Blow the Candle"
+  function triggerBlowSequence() {
+    blowBtn.style.display = "none";
+    candlePrompt.style.transition = "opacity 0.4s";
+    candlePrompt.style.opacity = "0";
+
+    // Play audio — allowed here because it's inside a user-gesture handler
+    if (bgm) {
+      bgm.volume = 0;
+      bgm.loop = true;
+      bgm
+        .play()
+        .then(() => {
+          let vol = 0;
+          const fadeAudio = setInterval(() => {
+            if (vol < 0.5) {
+              vol += 0.05;
+              bgm.volume = Math.min(vol, 0.5);
+            } else {
+              clearInterval(fadeAudio);
+            }
+          }, 200);
+        })
+        .catch((err) =>
+          console.log("Audio playback blocked by browser policies:", err),
+        );
+    }
+
+    // Blow the candle
+    candleWrapper.classList.add("hidden");
+
+    // Fade out overlay background to reveal the planet behind the text
+    overlay.style.backgroundColor = "transparent";
+
+    // Show Happy Birthday text
+    birthdayText.classList.add("show");
+
+    // Trigger constellation after a short pause
+    setTimeout(() => {
+      if (app.starfield) {
+        app.starfield.formConstellation();
+      }
+    }, 1500);
+
+    // Fade out the whole overlay
+    setTimeout(() => {
+      overlay.classList.add("fade-out");
+    }, 4500);
+  }
+
+  blowBtn.addEventListener("click", triggerBlowSequence);
 
   let count = 3;
   const interval = setInterval(() => {
     count--;
     if (count > 0) {
       countdownEl.textContent = count;
-
-      // AUDIO: Start playing exactly when timer reaches 1
-      if (count === 1 && bgm) {
-        bgm.volume = 0; // start silent
-        bgm.loop = true; // explicitly ensure loop is applied
-        bgm
-          .play()
-          .then(() => {
-            let vol = 0;
-            const fadeAudio = setInterval(() => {
-              if (vol < 0.5) {
-                vol += 0.05;
-                bgm.volume = Math.min(vol, 0.5);
-              } else {
-                clearInterval(fadeAudio);
-              }
-            }, 200);
-          })
-          .catch((err) =>
-            console.log("Audio playback blocked by browser policies:", err),
-          );
-      }
     } else {
       clearInterval(interval);
 
-      // Blow the candle (softly fade out instruction, countdown, and candle)
-      instruction.style.transition = "opacity 0.5s";
-      countdownEl.style.transition = "opacity 0.5s";
+      // Countdown finished — smoothly collapse instruction & countdown, show the button
       instruction.style.opacity = "0";
+      instruction.style.maxHeight = "0";
+      instruction.style.marginBottom = "0";
       countdownEl.style.opacity = "0";
-      candleWrapper.classList.add("hidden");
+      countdownEl.style.maxHeight = "0";
+      countdownEl.style.marginBottom = "0";
 
-      // Fade out overlay *background* to reveal the planet instantly behind the text
-      overlay.style.backgroundColor = "transparent";
-
-      // Show Happy Birthday text with the new glow animation
-      birthdayText.classList.add("show");
-
-      // TRIGGER CONSTELLATION: wait just 1.5 seconds so they look at the text first
-      setTimeout(() => {
-        if (app.starfield) {
-          app.starfield.formConstellation();
-        }
-      }, 1500);
-
-      // After showing the text for a bit, fade out the whole overlay
-      setTimeout(() => {
-        overlay.classList.add("fade-out");
-      }, 4500); // Decreased by 0.5s to make text disappear earlier
+      // Reveal the candle prompt and blow-candle button
+      candlePrompt.classList.add("visible");
+      blowBtn.classList.add("visible");
     }
   }, 1000);
 };
