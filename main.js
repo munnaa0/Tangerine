@@ -216,6 +216,8 @@ window.onload = () => {
           giftMsg.classList.add("show");
           giftMsg.setAttribute("aria-hidden", "false");
         }
+        // After the gift message is visible, reveal the love letter section
+        setTimeout(revealLetterSection, 1500);
       }, 800);
     }
 
@@ -225,6 +227,83 @@ window.onload = () => {
         e.preventDefault();
         openGift();
       }
+    });
+  }
+  // ──────────────────────────────────────────────────────────────────────────
+
+  // ── Love Letter Section ──────────────────────────────────────────────────
+  const letterSection = document.getElementById("section-letter");
+  const letterCard = document.getElementById("letter-card");
+  const scrollHint = document.getElementById("letter-scroll-hint");
+  let letterAnimated = false;
+
+  // Wrap every word inside letter text elements with a span for animation
+  function wrapLetterWords() {
+    if (!letterCard) return;
+    const els = letterCard.querySelectorAll(
+      ".letter-greeting, .letter-para, .letter-signoff",
+    );
+    els.forEach((el) => {
+      const words = el.textContent.split(/\s+/).filter((w) => w.length > 0);
+      el.innerHTML = words
+        .map((w) => '<span class="letter-word">' + w + "</span>")
+        .join("");
+    });
+  }
+
+  // Animate words one-by-one, then stamp the wax seal
+  function animateLetterText() {
+    if (!letterCard || letterAnimated) return;
+    letterAnimated = true;
+    const words = letterCard.querySelectorAll(".letter-word");
+    const revealDelay = 110;
+    words.forEach((w, i) => {
+      setTimeout(() => w.classList.add("revealed"), i * revealDelay);
+    });
+    const sealDelay = words.length * revealDelay + 500;
+    setTimeout(() => {
+      const seal = letterCard.querySelector(".seal-body");
+      if (seal) seal.classList.add("stamped");
+    }, sealDelay);
+  }
+
+  // Prepare word spans immediately (DOM is accessible even when section is hidden)
+  wrapLetterWords();
+
+  // Reveal the letter section and attach a scroll-triggered text animation
+  function revealLetterSection() {
+    if (!letterSection) return;
+    letterSection.classList.add("revealed");
+    if (scrollHint) scrollHint.classList.add("visible");
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            animateLetterText();
+            observer.disconnect();
+          }
+        });
+      },
+      { root: document.getElementById("scroll-wrapper"), threshold: 0.25 },
+    );
+    observer.observe(letterSection);
+  }
+
+  // Golden sparkle trail on letter card hover
+  let lastSparkle = 0;
+  if (letterCard) {
+    letterCard.addEventListener("mousemove", (e) => {
+      const now = Date.now();
+      if (now - lastSparkle < 50) return;
+      lastSparkle = now;
+      const rect = letterCard.getBoundingClientRect();
+      const sparkle = document.createElement("div");
+      sparkle.className = "sparkle";
+      sparkle.style.left = e.clientX - rect.left + "px";
+      sparkle.style.top = e.clientY - rect.top + "px";
+      letterCard.appendChild(sparkle);
+      setTimeout(() => sparkle.remove(), 800);
     });
   }
   // ──────────────────────────────────────────────────────────────────────────
