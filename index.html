@@ -67,6 +67,7 @@
                     </div>
                 </div>
             </section>
+        
             <!-- Section 2: Love Letter (hidden until gift opens) -->
             <section class="letter-section" id="section-letter">
                 <div class="letter-hearts" aria-hidden="true">
@@ -91,12 +92,124 @@
                         <p class="letter-para">
                             You are the prettiest soul I have ever known, inside and out. Distance has never changed that, and it never will.
                         </p>
-                        <p class="letter-para">Happy Birthday, my Sweetheart. Here's to you, to us and to every tomorrow we'll share.</p>
+                        <p class="letter-para">Happy Birthday, My Sweetheart. Here's to you, to us and to every tomorrow we'll share.</p>
                         <div class="letter-signoff-block">
                             <p class="letter-signoff">Forever yours,</p>
                             <p class="letter-signoff letter-name">Meownna</p>
                         </div>
                     </div>
+                </div>
+            </section>
+
+                <!-- Section 3: Countdown (relationship timer) -->
+            <section class="countdown-section" id="section-countdown">
+                <svg width="0" height="0" style="position:absolute">
+                    <defs>
+                    <linearGradient id="countdown-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#d4af37" />
+                    <stop offset="50%" stop-color="#f0d68a" />
+                    <stop offset="100%" stop-color="#b76e79" />
+                    </linearGradient>
+                    </defs>
+                </svg>
+                <div class="countdown-inner">
+                    <h2 class="countdown-title">And I'd choose you in every lifetime</h2>
+                    <p class="countdown-subtitle">Every second with you is a universe of love</p>
+                    <div class="countdown-grid">
+                        <div class="countdown-card" data-unit="years" data-max="100">
+                            <div class="card-orbital">
+                                <span></span>
+                            </div>
+                            <div class="progress-ring-wrap">
+                                <svg class="progress-ring" viewBox="0 0 120 120">
+                                    <circle class="progress-ring__bg" cx="60" cy="60" r="54" />
+                                    <circle class="progress-ring__fill" cx="60" cy="60" r="54" />
+                                </svg>
+                                <div class="countdown-value-wrap">
+                                    <span class="countdown-value" id="cd-years">0</span>
+                                </div>
+                            </div>
+                            <span class="countdown-label">Years</span>
+                        </div>
+                        <div class="countdown-card" data-unit="months" data-max="12">
+                            <div class="card-orbital">
+                                <span></span>
+                            </div>
+                            <div class="progress-ring-wrap">
+                                <svg class="progress-ring" viewBox="0 0 120 120">
+                                    <circle class="progress-ring__bg" cx="60" cy="60" r="54" />
+                                    <circle class="progress-ring__fill" cx="60" cy="60" r="54" />
+                                </svg>
+                                <div class="countdown-value-wrap">
+                                    <span class="countdown-value" id="cd-months">0</span>
+                                </div>
+                            </div>
+                            <span class="countdown-label">Months</span>
+                        </div>
+                        <div class="countdown-card" data-unit="days" data-max="31">
+                            <div class="card-orbital">
+                                <span></span>
+                            </div>
+                            <div class="progress-ring-wrap">
+                                <svg class="progress-ring" viewBox="0 0 120 120">
+                                    <circle class="progress-ring__bg" cx="60" cy="60" r="54" />
+                                    <circle class="progress-ring__fill" cx="60" cy="60" r="54" />
+                                </svg>
+                                <div class="countdown-value-wrap">
+                                    <span class="countdown-value" id="cd-days">0</span>
+                                </div>
+                            </div>
+                            <span class="countdown-label">Days</span>
+                        </div>
+                        <div class="countdown-card" data-unit="hours" data-max="24">
+                            <div class="card-orbital">
+                                <span></span>
+                            </div>
+                            <div class="progress-ring-wrap">
+                                <svg class="progress-ring" viewBox="0 0 120 120">
+                                    <circle class="progress-ring__bg" cx="60" cy="60" r="54" />
+                                    <circle class="progress-ring__fill" cx="60" cy="60" r="54" />
+                                </svg>
+                                <div class="countdown-value-wrap">
+                                    <span class="countdown-value" id="cd-hours">0</span>
+                                </div>
+                            </div>
+                            <span class="countdown-label">Hours</span>
+                        </div>
+                        <div class="countdown-card" data-unit="minutes" data-max="60">
+                            <div class="card-orbital">
+                                <span></span>
+                            </div>
+                            <div class="progress-ring-wrap">
+                                <svg class="progress-ring" viewBox="0 0 120 120">
+                                    <circle class="progress-ring__bg" cx="60" cy="60" r="54" />
+                                    <circle class="progress-ring__fill" cx="60" cy="60" r="54" />
+                                </svg>
+                                <div class="countdown-value-wrap">
+                                    <span class="countdown-value" id="cd-minutes">0</span>
+                                </div>
+                            </div>
+                            <span class="countdown-label">Minutes</span>
+                        </div>
+                        <div class="countdown-card" data-unit="seconds" data-max="60">
+                            <div class="card-orbital">
+                                <span></span>
+                            </div>
+                            <div class="progress-ring-wrap">
+                                <svg class="progress-ring" viewBox="0 0 120 120">
+                                    <circle class="progress-ring__bg" cx="60" cy="60" r="54" />
+                                    <circle class="progress-ring__fill" cx="60" cy="60" r="54" />
+                                </svg>
+                                <div class="countdown-value-wrap">
+                                    <span class="countdown-value" id="cd-seconds">0</span>
+                                </div>
+                            </div>
+                            <span class="countdown-label">Seconds</span>
+                        </div>
+                    </div>
+                    <div class="countdown-particles"
+                         id="countdown-particles"
+                         aria-hidden="true"></div>
                 </div>
             </section>
         </div>
