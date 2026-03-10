@@ -437,7 +437,7 @@ html {
   flex-direction: column;
   align-items: center;
   overflow: hidden;
-  max-height: 320px;
+  max-height: 420px;
   transition:
     max-height 0.9s cubic-bezier(0.4, 0, 0.2, 1),
     opacity 0.7s ease,
@@ -475,12 +475,13 @@ html {
 
 .gift-box {
   position: relative;
-  width: 200px;
-  height: 160px;
-  margin: 1.6rem auto 0.6rem;
+  width: 300px;
+  height: 270px;
+  margin: 1.6rem auto 1.6rem;
   cursor: pointer;
   animation: giftPulse 3s ease-in-out infinite;
   outline: none;
+  perspective: 1000px;
 }
 
 .gift-box:focus-visible {
@@ -489,45 +490,26 @@ html {
   border-radius: 4px;
 }
 
-.gift-body {
-  position: absolute;
-  inset: 30px 0 0 0;
-  border-radius: 18px;
-  background: linear-gradient(140deg, #d9a2a9, #b76e79 55%, #8e4f58 100%);
-  box-shadow:
-    0 20px 30px rgba(0, 0, 0, 0.5),
-    0 0 40px rgba(183, 110, 121, 0.3);
-}
-
 .gift-lid {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  height: 50px;
-  background: linear-gradient(140deg, #e7bcc3, #c27b86 55%, #9a5861 100%);
-  border-radius: 18px;
+  width: 100%;
+  height: 140px;
+  z-index: 2;
   transform-origin: bottom center;
-  transition: transform 0.7s var(--ease, cubic-bezier(0.2, 0.6, 0.2, 1));
+  transition: transform 0.8s cubic-bezier(0.2, 0.6, 0.2, 1);
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4));
 }
 
-.gift-ribbon {
+.gift-body {
   position: absolute;
-  inset: 0 45% 0 45%;
-  background: linear-gradient(180deg, #f7e6ba, #d4af37);
-  border-radius: 10px;
+  top: 140px;
+  left: 0;
+  width: 100%;
+  height: 130px;
   z-index: 1;
-}
-
-.gift-ribbon::after {
-  content: "";
-  position: absolute;
-  left: -60px;
-  right: -60px;
-  top: 20px;
-  height: 14px;
-  background: linear-gradient(180deg, #f7e6ba, #d4af37);
-  border-radius: 999px;
+  filter: drop-shadow(0 14px 20px rgba(0, 0, 0, 0.5));
 }
 
 .gift-box.open {
@@ -535,7 +517,7 @@ html {
 }
 
 .gift-box.open .gift-lid {
-  transform: translateY(-24px) rotateX(110deg);
+  transform: translateY(-5px) rotateX(105deg);
 }
 
 .gift-hint {
