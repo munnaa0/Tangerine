@@ -1591,7 +1591,8 @@ html {
 .story-nebula-node {
   position: absolute;
   border-radius: 50%;
-  filter: blur(90px);
+  /* Reduced from 90px to lower GPU cost while keeping a soft glow */
+  filter: blur(60px);
   opacity: 0;
   animation: storyNebulaFloat 10s ease-in-out infinite;
 }
@@ -1622,6 +1623,28 @@ html {
   right: -16%;
   animation-duration: 14s;
   animation-delay: 3.5s;
+}
+
+/* Performance safeguards for smaller screens and reduced-motion users:
+   - Further reduce blur radius
+   - Shrink nebula node sizes
+   - Lengthen animation duration slightly to reduce per-second work */
+@media (max-width: 768px), (prefers-reduced-motion: reduce) {
+  .story-nebula-node {
+    filter: blur(40px);
+    opacity: 0.7;
+    animation-duration: 14s;
+  }
+
+  .snn-1 {
+    width: 360px;
+    height: 260px;
+  }
+
+  .snn-2 {
+    width: 420px;
+    height: 320px;
+  }
 }
 
 .snn-3 {
