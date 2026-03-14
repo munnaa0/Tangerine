@@ -268,6 +268,15 @@ window.onload = () => {
       setTimeout(() => {
         const countdownSection = document.getElementById("section-countdown");
         if (countdownSection) countdownSection.classList.add("revealed");
+
+        // Reveal Our Story section 2 seconds after countdown is revealed
+        setTimeout(() => {
+          const storySection = document.getElementById("section-story");
+          if (storySection) {
+            storySection.classList.add("revealed");
+            initStory();
+          }
+        }, 2000);
       }, 1000);
     }, sealDelay);
   }
@@ -495,6 +504,222 @@ window.onload = () => {
     });
   })();
   // ──────────────────────────────────────────────────────────────────────────
+
+  // ── Our Story Section ─────────────────────────────────────────────────────
+  function initStory() {
+    const scrollWrapper = document.getElementById("scroll-wrapper");
+    const storyItems = document.querySelectorAll(".story-item");
+    const storyCards = document.querySelectorAll(".story-card");
+
+    // ── FEATURE 2: Typewriter animation for dates ────────────────────────────
+    function runTypewriter(dateEl) {
+      if (!dateEl || dateEl.dataset.twDone) return;
+      dateEl.dataset.twDone = "1";
+      const text = dateEl.dataset.tw || "";
+      dateEl.textContent = "";
+      dateEl.classList.add("typing");
+      let i = 0;
+      const speed = 55;
+      const tick = setInterval(() => {
+        dateEl.textContent += text[i];
+        i++;
+        if (i >= text.length) {
+          clearInterval(tick);
+          dateEl.classList.remove("typing");
+        }
+      }, speed);
+    }
+
+    // ── FEATURE 5: Entrance animation via IntersectionObserver ───────────────
+    const entranceObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const item = entry.target;
+            item.classList.add("animate-in");
+            // Kick off typewriter for the date inside this item
+            const dateEl = item.querySelector(".story-date[data-tw]");
+            const delay = 420; // wait for card to slide in
+            setTimeout(() => runTypewriter(dateEl), delay);
+            entranceObserver.unobserve(item);
+          }
+        });
+      },
+      { root: scrollWrapper, threshold: 0.25 },
+    );
+
+    storyItems.forEach((item) => entranceObserver.observe(item));
+
+    // ── FEATURE 1 (extended): Cursor sparkle trail on story cards ────────────
+    let lastStorySparkle = 0;
+    storyCards.forEach((card) => {
+      const inner = card.querySelector(".story-card-inner");
+      if (!inner) return;
+
+      card.addEventListener("mousemove", (e) => {
+        const now = Date.now();
+        if (now - lastStorySparkle < 45) return;
+        lastStorySparkle = now;
+        const rect = inner.getBoundingClientRect();
+        const sp = document.createElement("div");
+        sp.className = "story-sparkle";
+        const dx = (Math.random() - 0.5) * 20;
+        const dy = -(8 + Math.random() * 16);
+        sp.style.setProperty("--sx", dx + "px");
+        sp.style.setProperty("--sy", dy + "px");
+        sp.style.left = e.clientX - rect.left + "px";
+        sp.style.top = e.clientY - rect.top + "px";
+        inner.appendChild(sp);
+        setTimeout(() => sp.remove(), 800);
+      });
+
+      // ── FEATURE 1: Keyboard / touch flip toggle ──────────────────────────
+      card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          card.classList.toggle("flipped");
+        }
+      });
+
+      // Touch devices: tap to flip instead of hover
+      card.addEventListener("click", () => {
+        // Only activate flip-on-click when hover is not available
+        if (window.matchMedia("(hover: none)").matches) {
+          card.classList.toggle("flipped");
+        }
+      });
+    });
+
+    // ── FEATURE 5: Floating ambient particles emitted from each card ─────────
+    const ptclColors = ["#d4af37", "#fff2cc", "#b76e79", "#ffd1dc", "#c8a0e0"];
+
+    function emitCardParticles(ptclContainer) {
+      if (!ptclContainer) return;
+      const rect = ptclContainer.getBoundingClientRect();
+      if (rect.width === 0) return; // not visible yet
+      for (let i = 0; i < 3; i++) {
+        const dot = document.createElement("div");
+        dot.className = "story-ptcl-dot";
+        const startX = 10 + Math.random() * (rect.width - 20);
+        const startY = 10 + Math.random() * (rect.height - 20);
+        const dx = (Math.random() - 0.5) * 60;
+        const dy = -(20 + Math.random() * 50);
+        dot.style.left = startX + "px";
+        dot.style.top = startY + "px";
+        dot.style.setProperty("--ptcl-dx", dx + "px");
+        dot.style.setProperty("--ptcl-dy", dy + "px");
+        dot.style.background =
+          ptclColors[Math.floor(Math.random() * ptclColors.length)];
+        dot.style.boxShadow = "0 0 4px " + dot.style.background;
+        ptclContainer.appendChild(dot);
+        setTimeout(() => dot.remove(), 2900);
+      }
+    }
+
+    // Track active particle intervals per card so we can start/stop them
+    const cardParticleIntervals = new WeakMap();
+
+    // Start the particle emitters for each card (staggered so they don't all
+    // fire at the same moment and feels organic), but only while visible.
+    const storyParticleCards = document.querySelectorAll(".story-item-ptcl");
+
+    if (storyParticleCards.length > 0 && "IntersectionObserver" in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          const ptcl = entry.target;
+          const idx = Array.prototype.indexOf.call(
+            storyParticleCards,
+            ptcl,
+          );
+          if (idx === -1) {
+            return;
+          }
+          const baseInterval = 2200 + idx * 300;
+
+          if (entry.isIntersecting) {
+            // Already has an active interval; do nothing
+            if (cardParticleIntervals.has(ptcl)) {
+              return;
+            }
+
+            // Stagger the start slightly as in the original code
+            const startDelay = 600 + idx * 200;
+            const startTimeout = setTimeout(() => {
+              emitCardParticles(ptcl);
+              const intervalId = setInterval(
+                () => emitCardParticles(ptcl),
+                baseInterval,
+              );
+              cardParticleIntervals.set(ptcl, { intervalId });
+            }, startDelay);
+
+            // Temporarily store timeout handle so we can cancel if it goes off-screen quickly
+            cardParticleIntervals.set(ptcl, { timeoutId: startTimeout });
+          } else {
+            // No longer visible: clear any pending timeout and active interval
+            const handles = cardParticleIntervals.get(ptcl);
+            if (handles) {
+              if (handles.timeoutId) {
+                clearTimeout(handles.timeoutId);
+              }
+              if (handles.intervalId) {
+                clearInterval(handles.intervalId);
+              }
+              cardParticleIntervals.delete(ptcl);
+            }
+          }
+        });
+      });
+
+      storyParticleCards.forEach((ptcl) => observer.observe(ptcl));
+    } else {
+      // Fallback: preserve original always-on behavior if IntersectionObserver is unavailable
+      storyParticleCards.forEach((ptcl, idx) => {
+        const baseInterval = 2200 + idx * 300;
+        setTimeout(
+          () => {
+            emitCardParticles(ptcl);
+            const intervalId = setInterval(
+              () => emitCardParticles(ptcl),
+              baseInterval,
+            );
+            cardParticleIntervals.set(ptcl, { intervalId });
+          },
+          600 + idx * 200,
+        );
+      });
+    }
+
+    // ── Scroll-driven timeline line fill (bonus on top of CSS animation) ─────
+    // Supplements the CSS animation with exact scroll position tracking
+    const timeline = document.getElementById("story-timeline");
+    const lineFill = document.getElementById("story-line-fill");
+
+    if (timeline && lineFill && scrollWrapper) {
+      const updateLine = () => {
+        const tlRect = timeline.getBoundingClientRect();
+        const wrapRect = scrollWrapper.getBoundingClientRect();
+        // How far through the timeline has the viewport centre travelled
+        const vpCentre = wrapRect.top + wrapRect.height / 2;
+        const passed = vpCentre - tlRect.top;
+        const pct = Math.max(0, Math.min(100, (passed / tlRect.height) * 100));
+        // Only override once the CSS animation has finished (~5.3s) so they
+        // don't fight; we detect this by checking if animation is done
+        if (!lineFill.dataset.cssAnimDone) {
+          // Let CSS animation run; mark done after its duration + delay
+          setTimeout(() => {
+            lineFill.dataset.cssAnimDone = "1";
+          }, 5400);
+        } else {
+          lineFill.style.animation = "none";
+          lineFill.style.height = pct + "%";
+        }
+      };
+      scrollWrapper.addEventListener("scroll", updateLine, { passive: true });
+      updateLine();
+    }
+  }
+  // ── End Our Story Section ──────────────────────────────────────────────────
 
   let count = 3;
   const interval = setInterval(() => {
