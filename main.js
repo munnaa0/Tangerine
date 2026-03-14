@@ -616,18 +616,79 @@ window.onload = () => {
       }
     }
 
+    // Track active particle intervals per card so we can start/stop them
+    const cardParticleIntervals = new WeakMap();
+
     // Start the particle emitters for each card (staggered so they don't all
-    // fire at the same moment and feels organic)
-    document.querySelectorAll(".story-item-ptcl").forEach((ptcl, idx) => {
-      const baseInterval = 2200 + idx * 300;
-      setTimeout(
-        () => {
-          emitCardParticles(ptcl);
-          setInterval(() => emitCardParticles(ptcl), baseInterval);
-        },
-        600 + idx * 200,
-      );
-    });
+    // fire at the same moment and feels organic), but only while visible.
+    const storyParticleCards = document.querySelectorAll(".story-item-ptcl");
+
+    if (storyParticleCards.length > 0 && "IntersectionObserver" in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          const ptcl = entry.target;
+          const idx = Array.prototype.indexOf.call(
+            storyParticleCards,
+            ptcl,
+          );
+          if (idx === -1) {
+            return;
+          }
+          const baseInterval = 2200 + idx * 300;
+
+          if (entry.isIntersecting) {
+            // Already has an active interval; do nothing
+            if (cardParticleIntervals.has(ptcl)) {
+              return;
+            }
+
+            // Stagger the start slightly as in the original code
+            const startDelay = 600 + idx * 200;
+            const startTimeout = setTimeout(() => {
+              emitCardParticles(ptcl);
+              const intervalId = setInterval(
+                () => emitCardParticles(ptcl),
+                baseInterval,
+              );
+              cardParticleIntervals.set(ptcl, { intervalId });
+            }, startDelay);
+
+            // Temporarily store timeout handle so we can cancel if it goes off-screen quickly
+            cardParticleIntervals.set(ptcl, { timeoutId: startTimeout });
+          } else {
+            // No longer visible: clear any pending timeout and active interval
+            const handles = cardParticleIntervals.get(ptcl);
+            if (handles) {
+              if (handles.timeoutId) {
+                clearTimeout(handles.timeoutId);
+              }
+              if (handles.intervalId) {
+                clearInterval(handles.intervalId);
+              }
+              cardParticleIntervals.delete(ptcl);
+            }
+          }
+        });
+      });
+
+      storyParticleCards.forEach((ptcl) => observer.observe(ptcl));
+    } else {
+      // Fallback: preserve original always-on behavior if IntersectionObserver is unavailable
+      storyParticleCards.forEach((ptcl, idx) => {
+        const baseInterval = 2200 + idx * 300;
+        setTimeout(
+          () => {
+            emitCardParticles(ptcl);
+            const intervalId = setInterval(
+              () => emitCardParticles(ptcl),
+              baseInterval,
+            );
+            cardParticleIntervals.set(ptcl, { intervalId });
+          },
+          600 + idx * 200,
+        );
+      });
+    }
 
     // ── Scroll-driven timeline line fill (bonus on top of CSS animation) ─────
     // Supplements the CSS animation with exact scroll position tracking
