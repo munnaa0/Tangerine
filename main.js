@@ -275,6 +275,14 @@ window.onload = () => {
           if (storySection) {
             storySection.classList.add("revealed");
             initStory();
+
+            setTimeout(() => {
+              const gallerySection = document.getElementById("section-gallery");
+              if (gallerySection) {
+                gallerySection.classList.add("revealed");
+                initGallery();
+              }
+            }, 1700);
           }
         }, 2000);
       }, 1000);
@@ -627,10 +635,7 @@ window.onload = () => {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           const ptcl = entry.target;
-          const idx = Array.prototype.indexOf.call(
-            storyParticleCards,
-            ptcl,
-          );
+          const idx = Array.prototype.indexOf.call(storyParticleCards, ptcl);
           if (idx === -1) {
             return;
           }
@@ -720,6 +725,293 @@ window.onload = () => {
     }
   }
   // ── End Our Story Section ──────────────────────────────────────────────────
+
+  // ── Our Gallery Section ────────────────────────────────────────────────────
+  function initGallery() {
+    const section = document.getElementById("section-gallery");
+    const grid = document.getElementById("gallery-grid");
+    const dustLayer = document.getElementById("gallery-dust");
+    if (!section || !grid || grid.dataset.ready === "1") return;
+    grid.dataset.ready = "1";
+
+    const items = [
+      {
+        src: "images/pic1.jpg",
+        alt: "A sweet memory of us together",
+        title: "Soft Beginnings",
+        text: "The night felt quieter, but my heart felt louder with you.",
+      },
+      {
+        src: "images/pic1.jpg",
+        alt: "A precious smile from our journey",
+        title: "Held In Light",
+        text: "You smiled once, and the whole evening turned golden.",
+      },
+      {
+        src: "images/pic1.jpg",
+        alt: "A memory where we looked happiest",
+        title: "Near, Even Far",
+        text: "Distance kept our hands apart, never our souls.",
+      },
+      {
+        src: "images/pic1.jpg",
+        alt: "A shared moment from our love story",
+        title: "Quiet Magic",
+        text: "In the smallest moments, you always feel like home.",
+      },
+      {
+        src: "images/pic1.jpg",
+        alt: "A warm photo from one of our beautiful days",
+        title: "Golden Hour Us",
+        text: "Time slows down whenever your eyes find mine.",
+      },
+      {
+        src: "images/pic1.jpg",
+        alt: "Another chapter of our shared memories",
+        title: "Still Choosing You",
+        text: "Every season changed, but my choice stayed the same.",
+      },
+      {
+        src: "images/pic1.jpg",
+        alt: "A forever memory from our journey",
+        title: "Forever Frame",
+        text: "If forever had a photo, it would look like this.",
+      },
+    ];
+
+    grid.innerHTML = items
+      .map(
+        (item, idx) =>
+          '<article class="gallery-item" role="listitem" data-gallery-idx="' +
+          idx +
+          '">' +
+          '<button class="gallery-card" type="button" aria-label="Open photo ' +
+          (idx + 1) +
+          ' in viewer">' +
+          '<div class="gallery-figure">' +
+          '<img class="gallery-image" src="' +
+          item.src +
+          '" alt="' +
+          item.alt +
+          '" loading="lazy" decoding="async" fetchpriority="low" />' +
+          "</div>" +
+          '<div class="gallery-caption">' +
+          '<h3 class="gallery-caption-title">' +
+          item.title +
+          "</h3>" +
+          '<p class="gallery-caption-line">' +
+          item.text +
+          "</p>" +
+          "</div>" +
+          "</button>" +
+          "</article>",
+      )
+      .join("");
+
+    const itemWrappers = Array.from(grid.querySelectorAll(".gallery-item"));
+
+    if (dustLayer) {
+      const fragment = document.createDocumentFragment();
+      for (let i = 0; i < 20; i++) {
+        const dot = document.createElement("span");
+        dot.className = "gallery-dust-dot";
+        dot.style.left = Math.random() * 100 + "%";
+        dot.style.top = Math.random() * 100 + "%";
+        dot.style.setProperty("--dust-x", (Math.random() - 0.5) * 40 + "px");
+        dot.style.setProperty("--dust-dur", 8 + Math.random() * 6 + "s");
+        dot.style.setProperty("--dust-delay", Math.random() * -8 + "s");
+        fragment.appendChild(dot);
+      }
+      dustLayer.appendChild(fragment);
+    }
+
+    const lightbox = document.getElementById("gallery-lightbox");
+    const backdrop = document.getElementById("gallery-lb-backdrop");
+    const panel = lightbox?.querySelector(".gallery-lightbox-panel");
+    const closeBtn = document.getElementById("gallery-lb-close");
+    const prevBtn = document.getElementById("gallery-lb-prev");
+    const nextBtn = document.getElementById("gallery-lb-next");
+    const lbImage = document.getElementById("gallery-lb-image");
+    const lbTitle = document.getElementById("gallery-lb-title");
+    const lbText = document.getElementById("gallery-lb-text");
+    const lbProgressText = document.getElementById("gallery-lb-progress-text");
+    const lbProgressFill = document.getElementById("gallery-lb-progress-fill");
+
+    if (
+      !lightbox ||
+      !panel ||
+      !closeBtn ||
+      !prevBtn ||
+      !nextBtn ||
+      !lbImage ||
+      !lbTitle ||
+      !lbText ||
+      !lbProgressText ||
+      !lbProgressFill
+    ) {
+      return;
+    }
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    let activeIndex = 0;
+    let lastFocused = null;
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    function updateLightbox(idx) {
+      activeIndex = (idx + items.length) % items.length;
+      const current = items[activeIndex];
+      lbImage.src = current.src;
+      lbImage.alt = current.alt;
+      lbTitle.textContent = current.title;
+      lbText.textContent = current.text;
+      lbProgressText.textContent = activeIndex + 1 + " / " + items.length;
+      lbProgressFill.style.width =
+        ((activeIndex + 1) / items.length) * 100 + "%";
+
+      lbImage.style.animation = "none";
+      void lbImage.offsetWidth;
+      if (!prefersReducedMotion) {
+        lbImage.style.animation = "galleryZoomIn 0.4s ease";
+      }
+    }
+
+    function trapFocus(e) {
+      if (e.key !== "Tab") return;
+      const focusable = panel.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
+    function onGlobalKeyDown(e) {
+      if (!lightbox.classList.contains("open")) return;
+      if (e.key === "Escape") {
+        closeLightbox();
+      }
+      if (e.key === "ArrowLeft") {
+        updateLightbox(activeIndex - 1);
+      }
+      if (e.key === "ArrowRight") {
+        updateLightbox(activeIndex + 1);
+      }
+      trapFocus(e);
+    }
+
+    function openLightbox(idx, triggerEl) {
+      lastFocused = triggerEl || document.activeElement;
+      updateLightbox(idx);
+      lightbox.classList.add("open");
+      lightbox.setAttribute("aria-hidden", "false");
+      panel.focus();
+      document.addEventListener("keydown", onGlobalKeyDown);
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove("open");
+      lightbox.setAttribute("aria-hidden", "true");
+      document.removeEventListener("keydown", onGlobalKeyDown);
+      if (lastFocused && typeof lastFocused.focus === "function") {
+        lastFocused.focus();
+      }
+    }
+
+    itemWrappers.forEach((wrapper, idx) => {
+      const button = wrapper.querySelector(".gallery-card");
+      if (!button) return;
+
+      button.addEventListener("click", () => openLightbox(idx, button));
+
+      wrapper.addEventListener("mouseenter", () => {
+        wrapper.classList.add("is-focused");
+      });
+
+      wrapper.addEventListener("mouseleave", () => {
+        wrapper.classList.remove("is-focused");
+        if (!prefersReducedMotion) {
+          button.style.transform = "";
+        }
+      });
+
+      button.addEventListener("focus", () =>
+        wrapper.classList.add("is-focused"),
+      );
+      button.addEventListener("blur", () =>
+        wrapper.classList.remove("is-focused"),
+      );
+
+      if (!prefersReducedMotion) {
+        button.addEventListener("mousemove", (e) => {
+          if (!window.matchMedia("(hover: hover)").matches) return;
+          const rect = button.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const rotateX = ((y - rect.height / 2) / rect.height) * -5;
+          const rotateY = ((x - rect.width / 2) / rect.width) * 6;
+          button.style.transform =
+            "perspective(900px) rotateX(" +
+            rotateX +
+            "deg) rotateY(" +
+            rotateY +
+            "deg) translateY(-5px) scale(1.012)";
+        });
+      }
+    });
+
+    prevBtn.addEventListener("click", () => updateLightbox(activeIndex - 1));
+    nextBtn.addEventListener("click", () => updateLightbox(activeIndex + 1));
+    closeBtn.addEventListener("click", closeLightbox);
+    backdrop?.addEventListener("click", closeLightbox);
+
+    panel.addEventListener("touchstart", (e) => {
+      const touch = e.changedTouches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+    });
+
+    panel.addEventListener("touchend", (e) => {
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - touchStartX;
+      const dy = touch.clientY - touchStartY;
+
+      if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 0) {
+          updateLightbox(activeIndex - 1);
+        } else {
+          updateLightbox(activeIndex + 1);
+        }
+      }
+    });
+
+    if (!prefersReducedMotion) {
+      panel.addEventListener("mousemove", (e) => {
+        if (!lightbox.classList.contains("open")) return;
+        const rect = panel.getBoundingClientRect();
+        const px = (e.clientX - rect.left) / rect.width - 0.5;
+        const py = (e.clientY - rect.top) / rect.height - 0.5;
+        lbImage.style.transform =
+          "translate(" + px * 6 + "px," + py * 4 + "px) scale(1.005)";
+      });
+
+      panel.addEventListener("mouseleave", () => {
+        lbImage.style.transform = "";
+      });
+    }
+  }
+  // ── End Our Gallery Section ────────────────────────────────────────────────
 
   let count = 3;
   const interval = setInterval(() => {
