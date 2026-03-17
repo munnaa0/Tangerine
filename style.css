@@ -3174,43 +3174,80 @@ html {
   overflow: hidden;
 }
 
+.gallery-lightbox-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    120deg,
+    transparent 18%,
+    rgba(255, 242, 204, 0.08) 46%,
+    transparent 72%
+  );
+  background-size: 220% 100%;
+  animation: galleryPanelSheen 9s linear infinite;
+  z-index: 1;
+}
+
+@keyframes galleryPanelSheen {
+  from {
+    background-position: 140% 0;
+  }
+  to {
+    background-position: -140% 0;
+  }
+}
+
 .gallery-lightbox.open .gallery-lightbox-panel {
   transform: translate(-50%, -50%) scale(1);
 }
 
 .gallery-lb-close,
 .gallery-lb-nav {
+  position: absolute;
   border: 1px solid rgba(255, 242, 204, 0.24);
-  background: rgba(16, 7, 26, 0.75);
+  background: linear-gradient(
+    145deg,
+    rgba(28, 10, 44, 0.9),
+    rgba(16, 7, 26, 0.86)
+  );
+  backdrop-filter: blur(7px) saturate(130%);
+  -webkit-backdrop-filter: blur(7px) saturate(130%);
   color: rgba(255, 242, 204, 0.95);
   cursor: pointer;
-  z-index: 6;
+  z-index: 20;
+  pointer-events: auto;
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.5),
+    0 0 18px rgba(212, 175, 55, 0.2),
+    inset 0 1px 0 rgba(255, 242, 204, 0.24);
   transition:
     transform 0.25s ease,
     background 0.25s ease,
-    border-color 0.25s ease;
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .gallery-lb-close {
-  position: absolute;
   right: 14px;
   top: 12px;
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border-radius: 999px;
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   line-height: 1;
 }
 
 .gallery-lb-nav {
-  position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
   font-size: 2rem;
-  line-height: 0.8;
+  line-height: 0.85;
 }
 
 .gallery-lb-prev {
@@ -3225,14 +3262,22 @@ html {
 .gallery-lb-nav:hover,
 .gallery-lb-close:focus-visible,
 .gallery-lb-nav:focus-visible {
-  transform: translateY(-50%) scale(1.04);
+  transform: translateY(-50%) scale(1.06);
   border-color: rgba(212, 175, 55, 0.56);
-  background: rgba(32, 10, 42, 0.92);
+  background: linear-gradient(
+    145deg,
+    rgba(42, 14, 60, 0.96),
+    rgba(24, 8, 34, 0.92)
+  );
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.56),
+    0 0 26px rgba(212, 175, 55, 0.3),
+    inset 0 1px 0 rgba(255, 242, 204, 0.3);
 }
 
 .gallery-lb-close:hover,
 .gallery-lb-close:focus-visible {
-  transform: scale(1.04);
+  transform: scale(1.06);
 }
 
 .gallery-lb-figure {
@@ -3245,9 +3290,23 @@ html {
   gap: 14px;
 }
 
+.gallery-lb-figure::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 14px;
+  background: radial-gradient(
+    ellipse 84% 70% at 50% 52%,
+    transparent 55%,
+    rgba(4, 2, 10, 0.2) 100%
+  );
+  z-index: 4;
+}
+
 .gallery-lb-image {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   width: 100%;
   max-height: min(62vh, 700px);
   border-radius: 14px;
@@ -3262,6 +3321,9 @@ html {
     0 20px 44px rgba(0, 0, 0, 0.52),
     0 0 50px rgba(212, 175, 55, 0.08);
   animation: galleryZoomIn 0.4s ease;
+  transition:
+    opacity 0.28s ease,
+    transform 0.35s ease;
 }
 
 @keyframes galleryZoomIn {
@@ -3327,6 +3389,28 @@ html {
   background: linear-gradient(90deg, #d4af37, #f0d68a, #ffd1dc);
   transition: width 0.42s ease;
   box-shadow: 0 0 14px rgba(212, 175, 55, 0.48);
+  position: relative;
+  overflow: hidden;
+}
+
+.gallery-lb-progress-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 22%,
+    rgba(255, 255, 255, 0.72) 50%,
+    transparent 78%
+  );
+  transform: translateX(-140%);
+  animation: galleryProgressGleam 2.2s linear infinite;
+}
+
+@keyframes galleryProgressGleam {
+  to {
+    transform: translateX(140%);
+  }
 }
 
 @media (max-width: 980px) {
@@ -3369,8 +3453,8 @@ html {
     bottom: 14px;
     transform: none;
     width: 44px;
-    height: 34px;
-    font-size: 1.6rem;
+    height: 44px;
+    font-size: 1.5rem;
   }
 
   .gallery-lb-prev {
@@ -3382,9 +3466,11 @@ html {
   }
 
   .gallery-lb-close {
-    width: 30px;
-    height: 30px;
-    font-size: 1.45rem;
+    right: 12px;
+    top: 10px;
+    width: 38px;
+    height: 38px;
+    font-size: 1.55rem;
   }
 
   .gallery-lb-image {
@@ -3397,7 +3483,9 @@ html {
   .gallery-title,
   .gallery-title::after,
   .gallery-inner::before,
-  .gallery-section.revealed .gallery-item {
+  .gallery-section.revealed .gallery-item,
+  .gallery-lightbox-panel::before,
+  .gallery-lb-progress-fill::after {
     animation: none;
   }
 
