@@ -839,9 +839,20 @@ window.onload = () => {
     let touchStartX = 0;
     let touchStartY = 0;
 
+    function preloadNeighbors(idx) {
+      const prev = items[(idx - 1 + items.length) % items.length];
+      const next = items[(idx + 1) % items.length];
+      [prev, next].forEach((item) => {
+        const img = new Image();
+        img.src = item.src;
+      });
+    }
+
     function updateLightbox(idx) {
       activeIndex = (idx + items.length) % items.length;
       const current = items[activeIndex];
+
+      lbImage.style.opacity = "0.12";
       lbImage.src = current.src;
       lbImage.alt = current.alt;
       lbTitle.textContent = current.title;
@@ -850,10 +861,22 @@ window.onload = () => {
       lbProgressFill.style.width =
         ((activeIndex + 1) / items.length) * 100 + "%";
 
+      preloadNeighbors(activeIndex);
+
       lbImage.style.animation = "none";
       void lbImage.offsetWidth;
       if (!prefersReducedMotion) {
         lbImage.style.animation = "galleryZoomIn 0.4s ease";
+      }
+
+      const reveal = () => {
+        lbImage.style.opacity = "1";
+      };
+
+      if (lbImage.complete) {
+        requestAnimationFrame(reveal);
+      } else {
+        lbImage.onload = reveal;
       }
     }
 
