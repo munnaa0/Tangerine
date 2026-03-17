@@ -730,7 +730,6 @@ window.onload = () => {
   function initGallery() {
     const section = document.getElementById("section-gallery");
     const grid = document.getElementById("gallery-grid");
-    const dustLayer = document.getElementById("gallery-dust");
     if (!section || !grid || grid.dataset.ready === "1") return;
     grid.dataset.ready = "1";
 
@@ -771,12 +770,6 @@ window.onload = () => {
         title: "Still Choosing You",
         text: "Every season changed, but my choice stayed the same.",
       },
-      {
-        src: "images/pic1.jpg",
-        alt: "A forever memory from our journey",
-        title: "Forever Frame",
-        text: "If forever had a photo, it would look like this.",
-      },
     ];
 
     grid.innerHTML = items
@@ -809,21 +802,6 @@ window.onload = () => {
       .join("");
 
     const itemWrappers = Array.from(grid.querySelectorAll(".gallery-item"));
-
-    if (dustLayer) {
-      const fragment = document.createDocumentFragment();
-      for (let i = 0; i < 20; i++) {
-        const dot = document.createElement("span");
-        dot.className = "gallery-dust-dot";
-        dot.style.left = Math.random() * 100 + "%";
-        dot.style.top = Math.random() * 100 + "%";
-        dot.style.setProperty("--dust-x", (Math.random() - 0.5) * 40 + "px");
-        dot.style.setProperty("--dust-dur", 8 + Math.random() * 6 + "s");
-        dot.style.setProperty("--dust-delay", Math.random() * -8 + "s");
-        fragment.appendChild(dot);
-      }
-      dustLayer.appendChild(fragment);
-    }
 
     const lightbox = document.getElementById("gallery-lightbox");
     const backdrop = document.getElementById("gallery-lb-backdrop");
