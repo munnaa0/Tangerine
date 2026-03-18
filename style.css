@@ -685,7 +685,7 @@ html {
 /* ─── Premium Feature 3: Cinematic Opening Beam ─────────────────────────────── */
 .gift-light-beam {
   position: absolute;
-  bottom: 40px;
+  bottom: 0px;
   left: 50%;
   width: 150px;
   height: 300px;
@@ -800,9 +800,9 @@ html {
 
 .gift-box {
   position: relative;
-  width: 180px;
-  height: 160px;
-  margin: 2.5rem auto 1rem;
+  width: 200px;
+  height: 200px;
+  margin: 1.5rem auto 1rem;
   cursor: pointer;
   outline: none;
   z-index: 2;
@@ -847,80 +847,27 @@ html {
   }
 }
 
-/* Premium Feature 1: Glassmorphism 3D Shading */
-.gift-body-glass {
+/* Premium Feature 1: Animated Gift Box Image */
+.gift-box-image {
   position: absolute;
-  inset: 50px 10px 0 10px;
-  border-radius: 12px;
-  background: linear-gradient(
-    135deg,
-    rgba(88, 28, 135, 0.7) 0%,
-    rgba(217, 70, 239, 0.5) 100%
-  );
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 242, 204, 0.3);
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.6),
-    inset 0 0 20px rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-}
-
-.body-ribbon {
-  position: absolute;
-  left: 50%;
   top: 0;
-  bottom: 0;
-  width: 30px;
-  transform: translateX(-50%);
-  background: linear-gradient(to right, #e2c044, #fff2cc, #e2c044);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-}
-
-.gift-lid-glass {
-  position: absolute;
-  top: 25px;
   left: 0;
-  right: 0;
-  height: 40px;
-  border-radius: 8px;
-  background: linear-gradient(
-    135deg,
-    rgba(134, 25, 143, 0.8) 0%,
-    rgba(232, 121, 249, 0.6) 100%
-  );
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 242, 204, 0.5);
-  box-shadow:
-    0 10px 20px rgba(0, 0, 0, 0.5),
-    inset 0 1px 1px rgba(255, 255, 255, 0.4);
-  transform-origin: bottom center;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   transition:
-    transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 0.6s ease;
+    transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.4s ease;
   z-index: 3;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
-.lid-ribbon {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 30px;
-  transform: translateX(-50%);
-  background: linear-gradient(to right, #e2c044, #fff2cc, #e2c044);
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
-}
-
-.gift-bow {
-  position: absolute;
-  top: -38px;
-  left: 50%;
-  width: 100px;
-  height: 50px;
-  transform: translateX(-50%);
-  z-index: 4;
+.gift-box.open .gift-box-image {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+  /* Optionally fade it or keep it depending on desired effect, keeping it visible for now */
 }
 
 .gift-box.open {
@@ -966,15 +913,6 @@ html {
     opacity: 0;
     border-width: 1px;
   }
-}
-
-.gift-box.open .gift-lid-glass {
-  transform: translateY(-80px) translateX(30px) rotateZ(15deg) rotateX(105deg)
-    scale(1.1);
-  opacity: 0;
-  transition:
-    transform 1s cubic-bezier(0.34, 1.56, 0.64, 1),
-    opacity 0.8s ease;
 }
 
 .gift-hint {
@@ -1026,7 +964,7 @@ html {
   margin: 1.6rem auto 0;
   opacity: 1;
   transform: translateY(0) scale(1);
-  animation: messageGlow 4s ease-in-out infinite alternate 1s;
+  animation: messageGlow 1s ease-in-out infinite alternate;
 }
 
 @keyframes messageGlow {
