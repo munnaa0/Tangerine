@@ -1044,6 +1044,68 @@ window.onload = () => {
   }
   // ── End Our Gallery Section ────────────────────────────────────────────────
 
+  // ── Make a Wish & Finale Section ───────────────────────────────────────────
+  const wishBtn = document.getElementById("wish-btn");
+  const wishInputContainer = document.querySelector(".wish-container");
+  const wishInput = document.getElementById("wish-input");
+  const finaleSection = document.getElementById("section-finale");
+
+  if (wishBtn && wishInputContainer) {
+    wishBtn.addEventListener("click", () => {
+      // It's just visual, but let's make sure she typed something to make her feel it matters
+      if (wishInput.value.trim() === "") {
+        wishInput.focus();
+        // Shake animation for empty input could go here
+        return;
+      }
+
+      // Transition the box out
+      wishInputContainer.classList.add("sent");
+
+      // Spawn the big wishing star in the actual Three.js scene!
+      if (app.comets && typeof app.comets.spawnWishComet === "function") {
+        app.comets.spawnWishComet();
+      } else {
+        // Fallback or custom logic if CometSystem doesn't have it
+        console.log("Wish sent to the stars!");
+      }
+
+      // Reveal finale section as she scrolls
+      if (finaleSection) {
+        finaleSection.style.display = "flex";
+
+        // Let it layout, then smoothly scroll to it automatically
+        setTimeout(() => {
+          const scrollWrapper = document.getElementById("scroll-wrapper");
+          if (scrollWrapper) {
+            scrollWrapper.scrollTo({
+              top: scrollWrapper.scrollHeight,
+              behavior: "smooth",
+            });
+          }
+        }, 1500); // give the comet time to appear
+      }
+    });
+
+    // Make the finale text appear based on scroll using IntersectionObserver
+    if (finaleSection) {
+      const scrollWrapper = document.getElementById("scroll-wrapper");
+      const finaleObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              finaleSection.classList.add("active");
+              finaleObserver.unobserve(entry.target);
+            }
+          });
+        },
+        { root: scrollWrapper, threshold: 0.3 },
+      );
+
+      finaleObserver.observe(finaleSection);
+    }
+  }
+
   let count = 3;
   const interval = setInterval(() => {
     count--;
