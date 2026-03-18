@@ -447,7 +447,7 @@ html {
 }
 
 .premium-gift-stage {
-  perspective: 1000px;
+  perspective: 1200px;
 }
 
 .gift-box-wrapper.collapse {
@@ -456,25 +456,182 @@ html {
   margin: 0;
 }
 
+/* Premium Feature 1: Title moved outside glass content */
+.gift-title-container {
+  text-align: center;
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 10;
+  animation: floatTitle 4s ease-in-out infinite;
+  text-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+}
+
+.gift-title-stars {
+  font-size: 1.2rem;
+  color: #d4af37;
+  letter-spacing: 15px;
+  margin-top: 10px;
+  animation: twinkleStars 3s ease-in-out infinite alternate;
+}
+
+.gift-title-stars span {
+  display: inline-block;
+  animation: spinStar 6s linear infinite;
+}
+
+.gift-title-stars span:nth-child(2) {
+  animation-duration: 4s;
+  font-size: 1.5rem;
+  color: #ffb703;
+}
+
 .gift-title {
   font-family: var(--font-display, "Great Vibes", cursive);
-  font-size: clamp(2.6rem, 5.5vw, 4.2rem);
+  font-size: clamp(3rem, 6vw, 4.8rem);
   color: #fff2cc;
-  margin: 0 0 0 0;
-  letter-spacing: 1px;
+  margin: 0;
+  letter-spacing: 2px;
   line-height: 1.25;
+  background: linear-gradient(to right, #fff2cc, #d4af37, #fff2cc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   animation: titleShimmer 4.5s ease-in-out infinite;
 }
 
-/* NEW 3 — Ornamental divider below the title */
-.gift-title::after {
-  content: "\2605\00A0\2605\00A0\2605";
-  display: block;
-  font-size: 0.65rem;
-  letter-spacing: 8px;
-  color: rgba(212, 175, 55, 0.6);
-  margin-top: 0.55rem;
-  text-shadow: 0 0 10px rgba(212, 175, 55, 0.35);
+/* ─── Premium Feature 3: Rotating Celestial Ring ────────────────────────────── */
+.celestial-ring {
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  width: 260px;
+  height: 260px;
+  transform: translate(-50%, -50%) rotateX(60deg);
+  border: 1px dashed rgba(212, 175, 55, 0.5);
+  border-radius: 50%;
+  box-shadow:
+    0 0 15px rgba(212, 175, 55, 0.2),
+    inset 0 0 15px rgba(217, 70, 239, 0.2);
+  animation: rotateRing 15s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+.celestial-ring::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background: #d4af37;
+  border-radius: 50%;
+  box-shadow:
+    0 0 10px #ffb703,
+    0 0 20px #ffb703;
+}
+
+/* ─── Premium Feature 4: 3D Orbit Elements ──────────────────────────────────── */
+.orbit-elements {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.orbit-elem {
+  position: absolute;
+  font-size: 1.5rem;
+  opacity: 0.8;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+  animation: floatOrbit 6s ease-in-out infinite;
+}
+
+.oe1 {
+  top: 20%;
+  left: 10%;
+  animation-delay: 0s;
+}
+.oe2 {
+  top: 15%;
+  right: 15%;
+  animation-delay: 1.2s;
+  font-size: 1.2rem;
+}
+.oe3 {
+  top: 70%;
+  left: 15%;
+  animation-delay: 2.5s;
+  font-size: 1.7rem;
+}
+.oe4 {
+  bottom: 20%;
+  right: 10%;
+  animation-delay: 0.8s;
+}
+.oe5 {
+  top: 40%;
+  right: 5%;
+  animation-delay: 1.9s;
+  font-size: 1.1rem;
+}
+
+/* Keyframes for new premium features */
+@keyframes floatTitle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+@keyframes rotateRing {
+  0% {
+    transform: translate(-50%, -50%) rotateX(60deg) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotateX(60deg) rotate(360deg);
+  }
+}
+@keyframes floatOrbit {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    opacity: 0.8;
+    filter: brightness(1);
+  }
+  33% {
+    transform: translate(15px, -20px) scale(1.15) rotate(15deg);
+    opacity: 1;
+    filter: brightness(1.2) drop-shadow(0 0 10px rgba(212, 175, 55, 0.8));
+  }
+  66% {
+    transform: translate(-10px, -5px) scale(0.95) rotate(-10deg);
+    opacity: 0.7;
+    filter: brightness(0.9);
+  }
+}
+@keyframes twinkleStars {
+  0%,
+  100% {
+    opacity: 0.6;
+    filter: blur(0px);
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 5px #d4af37);
+  }
+}
+@keyframes spinStar {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* ─── Premium Feature 2: Magical Spinning Aura ──────────────────────────────── */
@@ -528,7 +685,7 @@ html {
 /* ─── Premium Feature 3: Cinematic Opening Beam ─────────────────────────────── */
 .gift-light-beam {
   position: absolute;
-  bottom: 40px;
+  bottom: 0px;
   left: 50%;
   width: 150px;
   height: 300px;
@@ -550,7 +707,7 @@ html {
 }
 
 .gift-box.open .gift-light-beam {
-  transform: translate(-50%, 0) scaleY(1);
+  transform: translate(-50%, 0) scaleY(1.3);
   opacity: 1;
   animation: beamPulse 3s ease-in-out infinite alternate;
 }
@@ -558,11 +715,13 @@ html {
 @keyframes beamPulse {
   0% {
     opacity: 0.6;
+    width: 150px;
+    filter: blur(15px);
   }
   100% {
     opacity: 1;
-    filter: blur(25px);
-    width: 220px;
+    filter: blur(35px);
+    width: 250px;
   }
 }
 
@@ -641,20 +800,35 @@ html {
 
 .gift-box {
   position: relative;
-  width: 180px;
-  height: 160px;
-  margin: 2.5rem auto 1rem;
+  width: 200px;
+  height: 200px;
+  margin: 1.5rem auto 1rem;
   cursor: pointer;
   outline: none;
   z-index: 2;
   transform-style: preserve-3d;
-  /* Hover 3D magnetics via animation */
-  animation: premiumFloat 4s ease-in-out infinite;
-  transition: transform 0.4s cubic-bezier(0.2, 0.6, 0.2, 1);
+  /* Premium 3D float */
+  animation:
+    premiumFloat 4s ease-in-out infinite,
+    boxGlow 3s ease-in-out infinite alternate;
+  transition:
+    transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+    filter 0.3s ease;
+}
+
+@keyframes boxGlow {
+  0% {
+    filter: drop-shadow(0 10px 15px rgba(212, 175, 55, 0.2));
+  }
+  100% {
+    filter: drop-shadow(0 15px 30px rgba(217, 70, 239, 0.4))
+      drop-shadow(0 0 20px rgba(212, 175, 55, 0.3));
+  }
 }
 
 .gift-box:hover {
-  transform: scale(1.05) translateY(-5px) rotateX(5deg);
+  transform: scale(1.1) translateY(-10px) rotateX(8deg) rotateY(-5deg);
+  animation-play-state: paused;
 }
 
 .gift-box:focus-visible {
@@ -673,90 +847,72 @@ html {
   }
 }
 
-/* Premium Feature 1: Glassmorphism 3D Shading */
-.gift-body-glass {
+/* Premium Feature 1: Animated Gift Box Image */
+.gift-box-image {
   position: absolute;
-  inset: 50px 10px 0 10px;
-  border-radius: 12px;
-  background: linear-gradient(
-    135deg,
-    rgba(88, 28, 135, 0.7) 0%,
-    rgba(217, 70, 239, 0.5) 100%
-  );
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 242, 204, 0.3);
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.6),
-    inset 0 0 20px rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-}
-
-.body-ribbon {
-  position: absolute;
-  left: 50%;
   top: 0;
-  bottom: 0;
-  width: 30px;
-  transform: translateX(-50%);
-  background: linear-gradient(to right, #e2c044, #fff2cc, #e2c044);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-}
-
-.gift-lid-glass {
-  position: absolute;
-  top: 25px;
   left: 0;
-  right: 0;
-  height: 40px;
-  border-radius: 8px;
-  background: linear-gradient(
-    135deg,
-    rgba(134, 25, 143, 0.8) 0%,
-    rgba(232, 121, 249, 0.6) 100%
-  );
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 242, 204, 0.5);
-  box-shadow:
-    0 10px 20px rgba(0, 0, 0, 0.5),
-    inset 0 1px 1px rgba(255, 255, 255, 0.4);
-  transform-origin: bottom center;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   transition:
-    transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 0.6s ease;
+    transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.4s ease;
   z-index: 3;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
-.lid-ribbon {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 30px;
-  transform: translateX(-50%);
-  background: linear-gradient(to right, #e2c044, #fff2cc, #e2c044);
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
-}
-
-.gift-bow {
-  position: absolute;
-  top: -38px;
-  left: 50%;
-  width: 100px;
-  height: 50px;
-  transform: translateX(-50%);
-  z-index: 4;
+.gift-box.open .gift-box-image {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+  /* Optionally fade it or keep it depending on desired effect, keeping it visible for now */
 }
 
 .gift-box.open {
-  animation: none;
-  transform: scale(1);
+  animation: boxOpenPulse 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-.gift-box.open .gift-lid-glass {
-  transform: translateY(-50px) rotateX(105deg) scale(1.05);
-  opacity: 0;
+@keyframes boxOpenPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15) translateY(-5px);
+    filter: drop-shadow(0 0 50px rgba(217, 70, 239, 0.6));
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+
+.gift-box.open::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%);
+  border: 4px solid rgba(212, 175, 55, 0.8);
+  border-radius: 50%;
+  animation: shockwave 1s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes shockwave {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 1;
+    border-width: 10px;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(3);
+    opacity: 0;
+    border-width: 1px;
+  }
 }
 
 .gift-hint {
@@ -776,44 +932,68 @@ html {
   max-width: 480px;
   max-height: 0;
   overflow: hidden;
-  font-family: "Lora", Georgia, serif;
+  font-family: var(--font-body, "Lora", Georgia, serif);
   font-style: italic;
-  font-size: clamp(1.15rem, 2.4vw, 1.45rem);
-  color: rgba(255, 245, 220, 0.92);
+  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+  color: #fff2cc;
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(20px) scale(0.95);
   transition:
-    opacity 0.9s ease 0.4s,
-    transform 0.9s ease 0.4s,
+    opacity 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s,
+    transform 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s,
     max-height 1s ease 0.1s,
     margin 0.6s ease 0.1s;
   text-align: center;
   text-shadow:
-    0 1px 12px rgba(0, 0, 0, 0.6),
-    0 0 20px rgba(255, 170, 0, 0.2);
-  line-height: 1.9;
-  letter-spacing: 0.3px;
+    0 2px 10px rgba(0, 0, 0, 0.8),
+    0 0 25px rgba(212, 175, 55, 0.4);
+  line-height: 1.8;
+  letter-spacing: 0.5px;
+  position: relative;
+  padding: 15px;
+  border-radius: 12px;
+  background: radial-gradient(
+    circle at center,
+    rgba(30, 10, 60, 0.4) 0%,
+    transparent 80%
+  );
 }
 
 .gift-message.show {
   max-height: 300px;
   margin: 1.6rem auto 0;
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
+  animation: messageGlow 1s ease-in-out infinite alternate;
 }
 
-.gift-message::before {
+@keyframes messageGlow {
+  0% {
+    box-shadow: 0 0 0 transparent;
+  }
+  100% {
+    box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.15);
+  }
+}
+
+.gift-message::before,
+.gift-message::after {
   content: "";
   display: block;
-  width: 80px;
-  height: 1px;
+  width: 120px;
+  height: 2px;
   margin: 0 auto 1.2rem;
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(212, 175, 55, 0.7),
+    rgba(212, 175, 55, 0.9),
     transparent
   );
+  filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.6));
+}
+
+.gift-message::after {
+  margin: 1.2rem auto 0;
 }
 
 /* ─── Heart Burst ────────────────────────────────────────────────────────────── */
@@ -920,15 +1100,26 @@ html {
 
 @keyframes heartPop {
   0% {
-    transform: translate(-50%, -50%) scale(0.3) rotate(45deg);
+    transform: translate(-50%, -50%) scale(0.1) rotate(45deg);
     opacity: 0;
   }
-  30% {
-    opacity: 0.9;
+  20% {
+    opacity: 1;
+    transform: translate(
+        calc(-50% + var(--x) * 0.4),
+        calc(-50% + var(--y) * 0.4)
+      )
+      scale(1.5) rotate(35deg);
+  }
+  60% {
+    opacity: 0.8;
   }
   100% {
-    transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(1)
-      rotate(45deg);
+    transform: translate(
+        calc(-50% + var(--x) * 1.5),
+        calc(-50% + var(--y) * 1.5 - 60px)
+      )
+      scale(0.5) rotate(60deg);
     opacity: 0;
   }
 }
@@ -937,17 +1128,16 @@ html {
 @keyframes titleShimmer {
   0%,
   100% {
-    color: #fff2cc;
     text-shadow:
       0 0 20px rgba(255, 170, 0, 0.5),
       0 0 8px rgba(255, 242, 204, 0.4);
+    filter: brightness(1) drop-shadow(0 0 0 transparent);
   }
   50% {
-    color: #fffef4;
     text-shadow:
       0 0 35px rgba(255, 215, 0, 0.95),
-      0 0 18px rgba(255, 242, 204, 0.85),
-      0 0 55px rgba(255, 160, 0, 0.55);
+      0 0 18px rgba(255, 242, 204, 0.85);
+    filter: brightness(1.2) drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
   }
 }
 
@@ -3823,4 +4013,218 @@ html {
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   SECTION 6: MAKE A WISH
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.wish-section {
+  min-height: 80vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 5;
+  padding: 40px 20px;
+}
+
+.wish-container {
+  width: min(800px, 92vw);
+  text-align: center;
+  padding: 60px 40px;
+  border-radius: 30px;
+  background: linear-gradient(
+    145deg,
+    rgba(22, 10, 44, 0.4) 0%,
+    rgba(40, 12, 60, 0.2) 100%
+  );
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 242, 204, 0.15);
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 242, 204, 0.2);
+  transition:
+    opacity 1.5s ease,
+    transform 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wish-container.sent {
+  opacity: 0;
+  transform: translateY(-80px) scale(0.9);
+  pointer-events: none;
+}
+
+.wish-title {
+  font-family: var(--font-display, "Great Vibes", cursive);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  color: #f0b8c3;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-shadow: 0 0 20px rgba(183, 110, 121, 0.6);
+}
+
+.wish-icon {
+  color: #d4af37;
+  filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.8));
+  animation: wishStarPulse 2s ease-in-out infinite;
+}
+
+@keyframes wishStarPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.8));
+  }
+  50% {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 20px rgba(212, 175, 55, 1));
+  }
+}
+
+.wish-subtitle {
+  font-family: "Lora", Georgia, serif;
+  font-style: italic;
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  color: rgba(255, 238, 206, 0.8);
+  margin-bottom: 2rem;
+}
+
+.wish-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+#wish-input {
+  width: 100%;
+  max-width: 500px;
+  min-height: 120px;
+  background: rgba(10, 5, 20, 0.5);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 16px;
+  padding: 20px;
+  font-family: "Lora", Georgia, serif;
+  font-size: 1.1rem;
+  color: #fff2cc;
+  resize: vertical;
+  outline: none;
+  box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.5);
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+#wish-input::placeholder {
+  color: rgba(255, 242, 204, 0.3);
+  font-style: italic;
+}
+
+#wish-input:focus {
+  border-color: rgba(212, 175, 55, 0.8);
+  box-shadow:
+    inset 0 4px 10px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(212, 175, 55, 0.2);
+}
+
+#wish-btn {
+  background: linear-gradient(135deg, #d4af37, #997000);
+  color: #11051c;
+  font-family: "Lora", Georgia, serif;
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 14px 36px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(212, 175, 55, 0.4);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+#wish-btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(212, 175, 55, 0.6);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   SECTION 7: GRAND FINALE
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.finale-section {
+  min-height: 100vh;
+  width: 100%;
+  display: none; /* Hidden until wish is made */
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 5;
+}
+
+.finale-content {
+  text-align: center;
+  padding: 20px;
+}
+
+.finale-text {
+  font-family: "Lora", Georgia, serif;
+  font-style: italic;
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  color: #e0d0e6;
+  opacity: 0;
+  transform: translateY(20px);
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  transition:
+    opacity 1.5s ease,
+    transform 1.5s ease;
+}
+
+.finale-title {
+  font-family: var(--font-display, "Great Vibes", cursive);
+  font-size: clamp(3rem, 8vw, 6rem);
+  background: linear-gradient(135deg, #ffd1dc 0%, #fff2cc 50%, #d4af37 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-top: 2rem;
+  opacity: 0;
+  transform: scale(0.9);
+  filter: drop-shadow(0 0 30px rgba(212, 175, 55, 0.4));
+  transition:
+    opacity 2.5s ease 0.5s,
+    transform 2.5s ease 0.5s;
+}
+
+/* When active, show them gradually */
+.finale-section.active .finale-text.line-1 {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.5s;
+}
+.finale-section.active .finale-text.line-2 {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 2s;
+}
+.finale-section.active .finale-text.line-3 {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 3.5s;
+}
+.finale-section.active .finale-title {
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 5.5s;
 }
