@@ -234,7 +234,8 @@ window.onload = () => {
   // ── Love Letter Section ──────────────────────────────────────────────────
   const letterSection = document.getElementById("section-letter");
   const letterCard = document.getElementById("letter-card");
-  const scrollHint = document.getElementById("letter-scroll-hint");
+  const waxSealBtn = document.getElementById("wax-seal-btn");
+  const letterTiltContainer = document.getElementById("letter-tilt-container");
   let letterAnimated = false;
 
   // Wrap every word inside letter text elements with a span for animation
@@ -251,20 +252,37 @@ window.onload = () => {
     });
   }
 
-  // Animate words one-by-one, then stamp the wax seal
+  // Animate words one-by-one
   function animateLetterText() {
-    if (!letterCard || letterAnimated) return;
-    letterAnimated = true;
+    if (!letterCard) return;
     const words = letterCard.querySelectorAll(".letter-word");
     const revealDelay = 110;
     words.forEach((w, i) => {
       setTimeout(() => w.classList.add("revealed"), i * revealDelay);
     });
-    const sealDelay = words.length * revealDelay + 500;
+
+    const totalDuration = words.length * revealDelay + 1000;
+    return totalDuration; // Return time it takes to finish
+  }
+
+  // Prepare word spans immediately
+  wrapLetterWords();
+
+  // Premium Feature: Wax Seal Interaction & Reveal
+  function handleWaxSealClick() {
+    if (letterAnimated) return;
+    letterAnimated = true;
+
+    // Break seal visually
+    waxSealBtn.classList.add("broken");
+
+    // Unlock card and trigger text reveals via JS typewriter
     setTimeout(() => {
-      const seal = letterCard.querySelector(".seal-body");
-      if (seal) seal.classList.add("stamped");
-      // Reveal countdown section after 1s
+      letterCard.classList.remove("locked");
+
+      const totalDuration = animateLetterText();
+
+      // Reveal countdown section after the letter text has finished animating
       setTimeout(() => {
         const countdownSection = document.getElementById("section-countdown");
         if (countdownSection) countdownSection.classList.add("revealed");
@@ -285,31 +303,43 @@ window.onload = () => {
             }, 1700);
           }
         }, 2000);
-      }, 1000);
-    }, sealDelay);
+      }, totalDuration);
+    }, 600);
   }
 
-  // Prepare word spans immediately (DOM is accessible even when section is hidden)
-  wrapLetterWords();
+  if (waxSealBtn) {
+    waxSealBtn.addEventListener("click", handleWaxSealClick);
+  }
 
-  // Reveal the letter section and attach a scroll-triggered text animation
+  // Premium Feature 5: 3D Tilt Effect on Hover
+  if (letterTiltContainer && letterCard) {
+    letterTiltContainer.addEventListener("mousemove", (e) => {
+      // Don't tilt if locked (optional, but let's keep it cool anyway)
+      const rect = letterTiltContainer.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      const rotateX = ((y - centerY) / centerY) * -4; // Max 4 degrees
+      const rotateY = ((x - centerX) / centerX) * 4;
+
+      letterCard.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+    });
+
+    letterTiltContainer.addEventListener("mouseleave", () => {
+      letterCard.style.transform = `perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)`;
+    });
+  }
+
+  // Reveal the letter section setup on scroll
   function revealLetterSection() {
     if (!letterSection) return;
     letterSection.classList.add("revealed");
+    // No scroll-triggered auto opening anymore, user must click seal
+    const scrollHint = document.getElementById("letter-scroll-hint");
     if (scrollHint) scrollHint.classList.add("visible");
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            animateLetterText();
-            observer.disconnect();
-          }
-        });
-      },
-      { root: document.getElementById("scroll-wrapper"), threshold: 0.25 },
-    );
-    observer.observe(letterSection);
   }
 
   // Golden sparkle trail on letter card hover
