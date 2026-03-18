@@ -69,49 +69,84 @@
             </section>
             <!-- Section 2: Love Letter-->
             <section class="letter-section" id="section-letter">
-                <div class="letter-hearts" aria-hidden="true">
-                    <span></span><span></span><span></span> <span></span><span></span><span></span>
+                <!-- Premium Feature 3: Stardust Particles -->
+                <div class="letter-stardust" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
                 </div>
-                <div class="letter-inner">
-                    <h2 class="letter-title">A Love Letter</h2>
-                    <div class="letter-card" id="letter-card">
+                <div class="letter-inner" id="letter-tilt-container">
+                    <h2 class="letter-title">
+                        <!-- Premium Feature 5: SVG Icon Accent -->
+                        <svg class="title-icon"
+                             viewBox="0 0 24 24"
+                             width="32"
+                             height="32"
+                             stroke="currentColor"
+                             stroke-width="1.5"
+                             fill="none"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                            </path>
+                        </svg>
+                        A Love Letter
+                    </h2>
+                    <!-- Premium Feature 2: Interactive Wax Seal -->
+                    <button id="wax-seal-btn" class="wax-seal-btn" aria-label="Open Letter">
+                        <div class="seal-ring">
+                            <svg viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" fill="#8b0000" stroke="#b22222" stroke-width="4" />
+                                <text x="50" y="62" font-family="'Great Vibes', cursive" font-size="45" fill="#d4af37" text-anchor="middle">T</text>
+                            </svg>
+                        </div>
+                        <span class="seal-text">Click to Open</span>
+                    </button>
+                    <!-- Premium Feature 1 & 4: Glassmorphic Letter Card with Staggered Reveal -->
+                    <div class="letter-card locked" id="letter-card">
+                        <div class="card-border-glow"></div>
                         <div class="candlelight" aria-hidden="true"></div>
-                        <p class="letter-greeting">Dear Tanjila,</p>
-                        <p class="letter-para">
-                            On this beautiful day, the world was gifted someone
-                            extraordinary -- you.
-                        </p>
-                        <p class="letter-para">
-                            I love the way your smile can light up even my
-                            darkest days. I love your kindness -- how you make
-                            everyone around you feel seen and valued. I love how
-                            you talk, the way every word you say feels like home
-                            to me.
-                        </p>
-                        <p class="letter-para">
-                            You never give up, no matter how hard life gets. You
-                            keep going with a grace and strength that inspires
-                            me every single day. You love me in a way I never
-                            knew I deserved, and you trust me with a heart so
-                            pure it makes me want to be a better person.
-                        </p>
-                        <p class="letter-para">
-                            But what I love most? You stayed. You saw the real
-                            me -- all of me -- and you never left. That is the
-                            most beautiful gift anyone has ever given me.
-                        </p>
-                        <p class="letter-para">
-                            You are the prettiest soul I have ever known, inside
-                            and out. Distance has never changed that, and it
-                            never will.
-                        </p>
-                        <p class="letter-para">
-                            Happy Birthday, My Sweetheart. Here's to you, to us
-                            and to every tomorrow we'll share.
-                        </p>
-                        <div class="letter-signoff-block">
-                            <p class="letter-signoff">Forever yours,</p>
-                            <p class="letter-signoff letter-name">Meownna</p>
+                        <!-- Beautiful ornamental SVG corner -->
+                        <svg class="ornament top-left" viewBox="0 0 50 50">
+                            <path d="M0,0 L20,0 A30,30 0 0,1 50,30 L50,50 L20,50 A30,30 0 0,1 0,20 Z" fill="rgba(212,175,55,0.1)" />
+                            <path d="M5,5 L15,5 A30,30 0 0,1 45,35 L45,45 L15,45 A30,30 0 0,1 5,15 Z" fill="none" stroke="rgba(212,175,55,0.4)" stroke-width="1" />
+                        </svg>
+                        <div class="letter-content" id="letter-content-wrapper">
+                            <p class="letter-greeting">Dear Tanjila,</p>
+                            <p class="letter-para">
+                                On this beautiful day, the world was gifted someone
+                                extraordinary -- you.
+                            </p>
+                            <p class="letter-para">
+                                I love the way your smile can light up even my
+                                darkest days. I love your kindness -- how you make
+                                everyone around you feel seen and valued. I love how
+                                you talk, the way every word you say feels like home
+                                to me.
+                            </p>
+                            <p class="letter-para">
+                                You never give up, no matter how hard life gets. You
+                                keep going with a grace and strength that inspires
+                                me every single day. You love me in a way I never
+                                knew I deserved, and you trust me with a heart so
+                                pure it makes me want to be a better person.
+                            </p>
+                            <p class="letter-para">
+                                But what I love most? You stayed. You saw the real
+                                me -- all of me -- and you never left. That is the
+                                most beautiful gift anyone has ever given me.
+                            </p>
+                            <p class="letter-para">
+                                You are the prettiest soul I have ever known, inside
+                                and out. Distance has never changed that, and it
+                                never will.
+                            </p>
+                            <p class="letter-para">
+                                Happy Birthday, My Sweetheart. Here's to you, to us
+                                and to every tomorrow we'll share.
+                            </p>
+                            <div class="letter-signoff-block">
+                                <p class="letter-signoff">Forever yours,</p>
+                                <p class="letter-signoff letter-name">Meownna</p>
+                            </div>
                         </div>
                     </div>
                 </div>
