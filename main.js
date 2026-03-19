@@ -990,60 +990,86 @@ window.onload = () => {
         alt: "A sweet memory of us together",
         title: "Soft Beginnings",
         text: "The night felt quieter, but my heart felt louder with you.",
+        r: -8,
+        x: -15,
+        y: -10, // Feature 1: Scattered rotation
       },
       {
         src: "images/pic1.jpg",
         alt: "A precious smile from our journey",
         title: "Held In Light",
         text: "You smiled once, and the whole evening turned golden.",
+        r: 6,
+        x: 10,
+        y: 15,
       },
       {
         src: "images/pic1.jpg",
         alt: "A memory where we looked happiest",
         title: "Near, Even Far",
         text: "Distance kept our hands apart, never our souls.",
+        r: -4,
+        x: 5,
+        y: 30,
       },
       {
         src: "images/pic1.jpg",
         alt: "A shared moment from our love story",
         title: "Quiet Magic",
         text: "In the smallest moments, you always feel like home.",
+        r: 7,
+        x: -10,
+        y: 10,
       },
       {
         src: "images/pic1.jpg",
         alt: "A warm photo from one of our beautiful days",
         title: "Golden Hour Us",
         text: "Time slows down whenever your eyes find mine.",
+        r: -12,
+        x: 20,
+        y: -5,
       },
       {
         src: "images/pic1.jpg",
         alt: "Another chapter of our shared memories",
         title: "Still Choosing You",
         text: "Every season changed, but my choice stayed the same.",
+        r: 5,
+        x: 0,
+        y: -20,
       },
     ];
 
     grid.innerHTML = items
       .map(
         (item, idx) =>
-          '<article class="gallery-item" role="listitem" data-gallery-idx="' +
+          '<article class="gallery-item" style="--r: ' +
+          item.r +
+          "deg; --tx: " +
+          item.x +
+          "; --ty: " +
+          item.y +
+          ';" role="listitem" data-gallery-idx="' +
           idx +
           '">' +
+          '<div class="gallery-tape"></div>' + // Feature 2: Washi Tape Element
           '<button class="gallery-card" type="button" aria-label="Open photo ' +
           (idx + 1) +
           ' in viewer">' +
           '<div class="gallery-figure">' +
+          '<div class="gallery-glare"></div>' + // Feature 3: Specular Glare/Reflection
           '<img class="gallery-image" src="' +
           item.src +
           '" alt="' +
           item.alt +
           '" loading="lazy" decoding="async" fetchpriority="low" />' +
           "</div>" +
-          '<div class="gallery-caption">' +
-          '<h3 class="gallery-caption-title">' +
+          '<div class="gallery-caption">' + // Showing caption below image on card
+          '<h3 class="gallery-item-title">' +
           item.title +
           "</h3>" +
-          '<p class="gallery-caption-line">' +
+          '<p class="gallery-item-text">' +
           item.text +
           "</p>" +
           "</div>" +
@@ -1051,6 +1077,26 @@ window.onload = () => {
           "</article>",
       )
       .join("");
+
+    // Feature 5: Interactive 3D tilt and Parallax on hover across the gallery container
+    section.addEventListener("mousemove", (e) => {
+      const rect = section.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+
+      const items = grid.querySelectorAll(".gallery-item");
+      items.forEach((item, index) => {
+        const factor = index % 2 === 0 ? 0.02 : -0.03; // Different speeds for different depths
+        item.style.transform = `translate(${x * factor}px, ${y * factor}px)`;
+      });
+    });
+
+    section.addEventListener("mouseleave", () => {
+      const items = grid.querySelectorAll(".gallery-item");
+      items.forEach((item) => {
+        item.style.transform = `translate(0px, 0px)`; // Reset
+      });
+    });
 
     const itemWrappers = Array.from(grid.querySelectorAll(".gallery-item"));
 
