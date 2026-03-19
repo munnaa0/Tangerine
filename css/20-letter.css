@@ -225,6 +225,8 @@
 
 .letter-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(
     145deg,
     rgba(20, 8, 35, 0.6) 0%,
@@ -287,6 +289,34 @@
 .letter-content {
   transition: opacity 0.5s ease;
   opacity: 1;
+  position: relative;
+  min-height: 0;
+  overflow-y: hidden;
+  overscroll-behavior: contain;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.letter-content::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.letter-content.long-letter-auto {
+  mask-image: linear-gradient(to bottom, transparent 0, #000 24px, #000 100%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 24px,
+    #000 100%
+  );
+}
+
+.letter-content.manual-scroll-enabled {
+  overflow-y: auto;
+  mask-image: none;
+  -webkit-mask-image: none;
 }
 
 .letter-card.locked .letter-content {
