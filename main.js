@@ -1074,7 +1074,116 @@ window.onload = () => {
   const wishInput = document.getElementById("wish-input");
   const finaleSection = document.getElementById("section-finale");
 
+  const isMobileWishDevice = window.matchMedia(
+    "(max-width: 768px), (pointer: coarse)",
+  ).matches;
+
+  const burstProfile = isMobileWishDevice
+    ? {
+        totalStars: 140,
+        starsPerFrame: 28,
+        minDuration: 1.8,
+        maxDuration: 3.2,
+        maxDelay: 2.8,
+        minScale: 0.5,
+        maxScale: 1.3,
+        tx: "130vw",
+        ty: "-130vh",
+      }
+    : {
+        totalStars: 200,
+        starsPerFrame: 40,
+        minDuration: 2.0,
+        maxDuration: 4.0,
+        maxDelay: 3.5,
+        minScale: 0.5,
+        maxScale: 2.0,
+        tx: "150vw",
+        ty: "-150vh",
+      };
+
+  const burstStarPool = [];
+  const burstColors = [
+    "#ffffff", // white
+    "#ffd700", // gold
+    "#ff69b4", // pink
+    "#00ffff", // cyan
+    "#9370db", // purple
+    "#ff4500", // orange
+  ];
+
+  function primeBurstPool() {
+    while (burstStarPool.length < burstProfile.totalStars) {
+      const star = document.createElement("div");
+      star.className = "burst-star";
+      burstStarPool.push(star);
+    }
+  }
+
+  function hydrateBurstStar(star) {
+    const startX = Math.random() * 120 - 20;
+    const startY = Math.random() * 100 + 50;
+    const duration =
+      burstProfile.minDuration +
+      Math.random() * (burstProfile.maxDuration - burstProfile.minDuration);
+    const delay = Math.random() * burstProfile.maxDelay;
+    const scale =
+      burstProfile.minScale +
+      Math.random() * (burstProfile.maxScale - burstProfile.minScale);
+
+    star.classList.remove("active");
+    star.style.setProperty("--sx", `${startX}vw`);
+    star.style.setProperty("--sy", `${startY}vh`);
+    star.style.setProperty("--tx", burstProfile.tx);
+    star.style.setProperty("--ty", burstProfile.ty);
+    star.style.setProperty("--s", `${scale}`);
+    star.style.setProperty("--dur", `${duration}s`);
+    star.style.setProperty("--delay", `${delay}s`);
+    star.style.setProperty(
+      "--c",
+      burstColors[Math.floor(Math.random() * burstColors.length)],
+    );
+  }
+
+  function launchWishBurst(burstContainer) {
+    burstContainer.innerHTML = "";
+
+    const { totalStars, starsPerFrame } = burstProfile;
+    const appendBatch = (startIndex) => {
+      const fragment = document.createDocumentFragment();
+      const activatedStars = [];
+      const endIndex = Math.min(startIndex + starsPerFrame, totalStars);
+
+      for (let i = startIndex; i < endIndex; i++) {
+        const star = burstStarPool[i];
+        hydrateBurstStar(star);
+        fragment.appendChild(star);
+        activatedStars.push(star);
+      }
+
+      burstContainer.appendChild(fragment);
+
+      requestAnimationFrame(() => {
+        activatedStars.forEach((star) => star.classList.add("active"));
+      });
+
+      if (endIndex < totalStars) {
+        requestAnimationFrame(() => appendBatch(endIndex));
+      }
+    };
+
+    appendBatch(0);
+  }
+
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(() => primeBurstPool(), { timeout: 300 });
+  } else {
+    setTimeout(() => primeBurstPool(), 0);
+  }
+
   if (wishBtn && wishInputContainer) {
+    let wishSent = false;
+
     wishBtn.addEventListener("click", () => {
       // It's just visual, but let's make sure she typed something to make her feel it matters
       if (wishInput.value.trim() === "") {
@@ -1082,6 +1191,9 @@ window.onload = () => {
         // Shake animation for empty input could go here
         return;
       }
+
+      if (wishSent) return;
+      wishSent = true;
 
       // Transition the box out
       wishInputContainer.classList.add("sent");
@@ -1098,64 +1210,7 @@ window.onload = () => {
       // Grand Meteor Shower Burst Effect in DOM
       const burstContainer = document.getElementById("wish-star-burst");
       if (burstContainer) {
-        // Clear previous if any
-        burstContainer.innerHTML = "";
-
-        // Spawn 200 massive parallel meteors (Bottom-Left -> Top-Right).
-        // Build them in small animation-frame batches to avoid a single-frame jank spike.
-        const totalStars = 200;
-        const starsPerFrame = 40;
-        const colors = [
-          "#ffffff", // white
-          "#ffd700", // gold
-          "#ff69b4", // pink
-          "#00ffff", // cyan
-          "#9370db", // purple
-          "#ff4500", // orange
-        ];
-
-        const appendStarsBatch = (startIndex) => {
-          const fragment = document.createDocumentFragment();
-          const endIndex = Math.min(startIndex + starsPerFrame, totalStars);
-
-          for (let i = startIndex; i < endIndex; i++) {
-            const star = document.createElement("div");
-            star.className = "burst-star";
-
-            // Spread them across the bottom and left areas off-screen
-            // X from -20vw up to 100vw, Y from 50vh up to 150vh
-            const startX = Math.random() * 120 - 20;
-            const startY = Math.random() * 100 + 50;
-
-            star.style.setProperty("--sx", `${startX}vw`);
-            star.style.setProperty("--sy", `${startY}vh`);
-
-            // Move massively Top-Right
-            star.style.setProperty("--tx", `150vw`);
-            star.style.setProperty("--ty", `-150vh`);
-
-            // Long majestic timing: 2s to 4s travel time, staggered across 3+ seconds
-            const duration = 2.0 + Math.random() * 2.0;
-            const delay = Math.random() * 3.5;
-            const scale = 0.5 + Math.random() * 1.5;
-
-            star.style.setProperty("--s", `${scale}`);
-
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            star.style.setProperty("--c", color);
-
-            star.style.animation = `starEruptParallel ${duration}s ${delay}s linear forwards`;
-            fragment.appendChild(star);
-          }
-
-          burstContainer.appendChild(fragment);
-
-          if (endIndex < totalStars) {
-            requestAnimationFrame(() => appendStarsBatch(endIndex));
-          }
-        };
-
-        appendStarsBatch(0);
+        launchWishBurst(burstContainer);
       }
 
       // Trigger the main cosmic scene wish comet once (prevents the giant thick line issue)
