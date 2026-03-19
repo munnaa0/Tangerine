@@ -139,6 +139,44 @@ window.onload = () => {
   const birthdayText = document.getElementById("happy-birthday-text");
   const blowBtn = document.getElementById("blow-candle-btn");
   const bgm = document.getElementById("bgm");
+  const originalBirthdayText = birthdayText
+    ? birthdayText.textContent.trim()
+    : "";
+
+  const mobileBirthdayMedia = window.matchMedia("(max-width: 430px)");
+
+  function formatBirthdayTextForViewport() {
+    if (!birthdayText || !originalBirthdayText) return;
+
+    if (mobileBirthdayMedia.matches) {
+      if (birthdayText.dataset.mobileFormatted === "1") return;
+
+      const match = originalBirthdayText.match(/^(Happy\s+Birthday)\s+(.+)$/i);
+      if (match) {
+        birthdayText.innerHTML =
+          '<span class="hb-mobile-line">' +
+          match[1] +
+          "</span><br>" +
+          '<span class="hb-mobile-line">' +
+          match[2] +
+          "</span>";
+        birthdayText.dataset.mobileFormatted = "1";
+      }
+    } else if (birthdayText.dataset.mobileFormatted === "1") {
+      birthdayText.textContent = originalBirthdayText;
+      delete birthdayText.dataset.mobileFormatted;
+    }
+  }
+
+  formatBirthdayTextForViewport();
+  if (typeof mobileBirthdayMedia.addEventListener === "function") {
+    mobileBirthdayMedia.addEventListener(
+      "change",
+      formatBirthdayTextForViewport,
+    );
+  } else if (typeof mobileBirthdayMedia.addListener === "function") {
+    mobileBirthdayMedia.addListener(formatBirthdayTextForViewport);
+  }
 
   // Called after the user clicks "Blow the Candle"
   function triggerBlowSequence() {
@@ -247,8 +285,12 @@ window.onload = () => {
   // ── Love Letter Section ──────────────────────────────────────────────────
   const letterSection = document.getElementById("section-letter");
   const letterCard = document.getElementById("letter-card");
+  const letterContentWrapper = document.getElementById(
+    "letter-content-wrapper",
+  );
   const waxSealBtn = document.getElementById("wax-seal-btn");
   const letterTiltContainer = document.getElementById("letter-tilt-container");
+  const scrollWrapper = document.getElementById("scroll-wrapper");
   let letterAnimated = false;
 
   // Wrap every word inside letter text elements with a span for animation
@@ -267,15 +309,198 @@ window.onload = () => {
 
   // Animate words one-by-one
   function animateLetterText() {
-    if (!letterCard) return;
+    if (!letterCard) return Promise.resolve();
     const words = letterCard.querySelectorAll(".letter-word");
     const revealDelay = 110;
-    words.forEach((w, i) => {
-      setTimeout(() => w.classList.add("revealed"), i * revealDelay);
-    });
+    let index = 0;
 
-    const totalDuration = words.length * revealDelay + 1000;
-    return totalDuration; // Return time it takes to finish
+    const lineHeightRaw = letterContentWrapper
+      ? parseFloat(window.getComputedStyle(letterContentWrapper).lineHeight)
+      : NaN;
+    const bottomBufferPx = Number.isFinite(lineHeightRaw)
+      ? Math.max(16, Math.round(lineHeightRaw))
+      : 24;
+
+    function advanceForWord(wordEl) {
+      if (!letterContentWrapper) return;
+      if (!letterContentWrapper.classList.contains("long-letter-auto")) return;
+
+      const wordBottom = wordEl.offsetTop + wordEl.offsetHeight;
+      const viewportBottom =
+        letterContentWrapper.scrollTop + letterContentWrapper.clientHeight;
+      const triggerBottom = viewportBottom - bottomBufferPx;
+
+      // Start scrolling as soon as the revealed text reaches the last visible line.
+      if (wordBottom > triggerBottom) {
+        const nextScrollTop =
+          wordBottom - (letterContentWrapper.clientHeight - bottomBufferPx);
+        letterContentWrapper.scrollTop = Math.max(
+          letterContentWrapper.scrollTop,
+          nextScrollTop,
+        );
+      }
+    }
+
+    return new Promise((resolve) => {
+      const revealNext = () => {
+        if (index >= words.length) {
+          resolve();
+          return;
+        }
+
+        const word = words[index];
+        word.classList.add("revealed");
+        advanceForWord(word);
+        index += 1;
+        setTimeout(revealNext, revealDelay);
+      };
+
+      revealNext();
+    });
+  }
+
+  function setMainScrollLock(locked) {
+    if (!scrollWrapper) return;
+
+    if (locked) {
+      if (scrollWrapper.dataset.prevOverflowY === undefined) {
+        scrollWrapper.dataset.prevOverflowY =
+          scrollWrapper.style.overflowY || "";
+      }
+      scrollWrapper.style.overflowY = "hidden";
+      return;
+    }
+
+    const previousOverflow = scrollWrapper.dataset.prevOverflowY;
+    if (previousOverflow !== undefined) {
+      scrollWrapper.style.overflowY = previousOverflow;
+      delete scrollWrapper.dataset.prevOverflowY;
+    } else {
+      scrollWrapper.style.overflowY = "";
+    }
+  }
+
+  function prepareLongLetterFlow() {
+    if (!letterContentWrapper) return false;
+
+    letterContentWrapper.scrollTop = 0;
+    letterContentWrapper.classList.remove(
+      "long-letter-auto",
+      "manual-scroll-enabled",
+    );
+
+    const overflowDistance =
+      letterContentWrapper.scrollHeight - letterContentWrapper.clientHeight;
+
+    if (overflowDistance < 2) {
+      return false;
+    }
+
+    letterContentWrapper.classList.add("long-letter-auto");
+    setMainScrollLock(true);
+    return true;
+  }
+
+  function finishLongLetterAutoScroll() {
+    if (!letterContentWrapper) return Promise.resolve();
+    if (!letterContentWrapper.classList.contains("long-letter-auto")) {
+      return Promise.resolve();
+    }
+
+    const totalOverflow = Math.max(
+      0,
+      letterContentWrapper.scrollHeight - letterContentWrapper.clientHeight,
+    );
+    const remainingDistance = Math.max(
+      0,
+      totalOverflow - letterContentWrapper.scrollTop,
+    );
+
+    if (remainingDistance < 2) {
+      letterContentWrapper.classList.remove("long-letter-auto");
+      letterContentWrapper.classList.add("manual-scroll-enabled");
+      setMainScrollLock(false);
+      return Promise.resolve();
+    }
+
+    const pxPerSecond = 52;
+    const durationMs = Math.max(
+      900,
+      Math.min(6000, (remainingDistance / pxPerSecond) * 1000),
+    );
+    const startTop = letterContentWrapper.scrollTop;
+
+    return new Promise((resolve) => {
+      const startTime = performance.now();
+
+      const tick = (now) => {
+        const progress = Math.min(1, (now - startTime) / durationMs);
+        // Ease-out for a cleaner finish at the end of the letter.
+        const eased = 1 - Math.pow(1 - progress, 2);
+        letterContentWrapper.scrollTop = startTop + remainingDistance * eased;
+
+        if (progress < 1) {
+          requestAnimationFrame(tick);
+          return;
+        }
+
+        letterContentWrapper.classList.remove("long-letter-auto");
+        letterContentWrapper.classList.add("manual-scroll-enabled");
+        setMainScrollLock(false);
+        resolve();
+      };
+
+      requestAnimationFrame(tick);
+    });
+  }
+
+  function revealPostLetterSections() {
+    const countdownSection = document.getElementById("section-countdown");
+    if (countdownSection) countdownSection.classList.add("revealed");
+
+    // Reveal Our Story section 2 seconds after countdown is revealed
+    setTimeout(() => {
+      const storySection = document.getElementById("section-story");
+      if (storySection) {
+        storySection.classList.add("revealed");
+        initStory();
+
+        setTimeout(() => {
+          const gallerySection = document.getElementById("section-gallery");
+          if (gallerySection) {
+            gallerySection.classList.add("revealed");
+            initGallery();
+
+            // Reveal the wish section only after gallery reveal finishes,
+            // then wait an additional 2 seconds.
+            const galleryRevealDurationMs = 1200;
+            const wishRevealDelayMs = 2000;
+            setTimeout(() => {
+              const wishSection = document.getElementById("section-wish");
+              if (wishSection) {
+                wishSection.classList.add("revealed");
+              }
+            }, galleryRevealDurationMs + wishRevealDelayMs);
+          }
+        }, 1700);
+      }
+    }, 2000);
+  }
+
+  function applyLetterViewportLock() {
+    if (!letterCard || !letterContentWrapper) return;
+
+    const viewportCap = Math.min(window.innerHeight * 0.72, 520);
+    const computed = window.getComputedStyle(letterCard);
+    const padTop = parseFloat(computed.paddingTop) || 0;
+    const padBottom = parseFloat(computed.paddingBottom) || 0;
+    const contentHeight = Math.max(
+      220,
+      Math.floor(viewportCap - padTop - padBottom),
+    );
+
+    letterCard.style.maxHeight = Math.floor(viewportCap) + "px";
+    letterContentWrapper.style.maxHeight = contentHeight + "px";
   }
 
   // Prepare word spans immediately
@@ -292,42 +517,14 @@ window.onload = () => {
     // Unlock card and trigger text reveals via JS typewriter
     setTimeout(() => {
       letterCard.classList.remove("locked");
+      applyLetterViewportLock();
+      prepareLongLetterFlow();
 
-      const totalDuration = animateLetterText();
-
-      // Reveal countdown section after the letter text has finished animating
-      setTimeout(() => {
-        const countdownSection = document.getElementById("section-countdown");
-        if (countdownSection) countdownSection.classList.add("revealed");
-
-        // Reveal Our Story section 2 seconds after countdown is revealed
-        setTimeout(() => {
-          const storySection = document.getElementById("section-story");
-          if (storySection) {
-            storySection.classList.add("revealed");
-            initStory();
-
-            setTimeout(() => {
-              const gallerySection = document.getElementById("section-gallery");
-              if (gallerySection) {
-                gallerySection.classList.add("revealed");
-                initGallery();
-
-                // Reveal the wish section only after gallery reveal finishes,
-                // then wait an additional 2 seconds.
-                const galleryRevealDurationMs = 1200;
-                const wishRevealDelayMs = 2000;
-                setTimeout(() => {
-                  const wishSection = document.getElementById("section-wish");
-                  if (wishSection) {
-                    wishSection.classList.add("revealed");
-                  }
-                }, galleryRevealDurationMs + wishRevealDelayMs);
-              }
-            }, 1700);
-          }
-        }, 2000);
-      }, totalDuration);
+      animateLetterText().then(() => {
+        finishLongLetterAutoScroll().then(() => {
+          revealPostLetterSections();
+        });
+      });
     }, 600);
   }
 
