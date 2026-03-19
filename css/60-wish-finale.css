@@ -687,6 +687,22 @@
     transform 2.5s ease 0.5s;
 }
 
+/* Footer in finale */
+.finale-content .story-footer {
+  margin-top: 3rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 2s ease,
+    transform 2s ease;
+}
+
+.finale-section.active .story-footer {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 7s;
+}
+
 /* When active, show them gradually */
 .finale-section.active .finale-text.line-1 {
   opacity: 1;
