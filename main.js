@@ -990,60 +990,86 @@ window.onload = () => {
         alt: "A sweet memory of us together",
         title: "Soft Beginnings",
         text: "The night felt quieter, but my heart felt louder with you.",
+        r: -8,
+        x: -15,
+        y: -10, // Feature 1: Scattered rotation
       },
       {
         src: "images/pic1.jpg",
         alt: "A precious smile from our journey",
         title: "Held In Light",
         text: "You smiled once, and the whole evening turned golden.",
+        r: 6,
+        x: 10,
+        y: 15,
       },
       {
         src: "images/pic1.jpg",
         alt: "A memory where we looked happiest",
         title: "Near, Even Far",
         text: "Distance kept our hands apart, never our souls.",
+        r: -4,
+        x: 5,
+        y: 30,
       },
       {
         src: "images/pic1.jpg",
         alt: "A shared moment from our love story",
         title: "Quiet Magic",
         text: "In the smallest moments, you always feel like home.",
+        r: 7,
+        x: -10,
+        y: 10,
       },
       {
         src: "images/pic1.jpg",
         alt: "A warm photo from one of our beautiful days",
         title: "Golden Hour Us",
         text: "Time slows down whenever your eyes find mine.",
+        r: -12,
+        x: 20,
+        y: -5,
       },
       {
         src: "images/pic1.jpg",
         alt: "Another chapter of our shared memories",
         title: "Still Choosing You",
         text: "Every season changed, but my choice stayed the same.",
+        r: 5,
+        x: 0,
+        y: -20,
       },
     ];
 
     grid.innerHTML = items
       .map(
         (item, idx) =>
-          '<article class="gallery-item" role="listitem" data-gallery-idx="' +
+          '<article class="gallery-item" style="--r: ' +
+          item.r +
+          "deg; --tx: " +
+          item.x +
+          "; --ty: " +
+          item.y +
+          ';" role="listitem" data-gallery-idx="' +
           idx +
           '">' +
+          '<div class="gallery-tape"></div>' + // Feature 2: Washi Tape Element
           '<button class="gallery-card" type="button" aria-label="Open photo ' +
           (idx + 1) +
           ' in viewer">' +
           '<div class="gallery-figure">' +
+          '<div class="gallery-glare"></div>' + // Feature 3: Specular Glare/Reflection
           '<img class="gallery-image" src="' +
           item.src +
           '" alt="' +
           item.alt +
           '" loading="lazy" decoding="async" fetchpriority="low" />' +
           "</div>" +
-          '<div class="gallery-caption">' +
-          '<h3 class="gallery-caption-title">' +
+          '<div class="gallery-caption">' + // Showing caption below image on card
+          '<h3 class="gallery-item-title">' +
           item.title +
           "</h3>" +
-          '<p class="gallery-caption-line">' +
+          '<p class="gallery-item-text">' +
           item.text +
           "</p>" +
           "</div>" +
@@ -1052,32 +1078,36 @@ window.onload = () => {
       )
       .join("");
 
+    // Feature 5: Interactive 3D tilt and Parallax on hover across the gallery container
+    section.addEventListener("mousemove", (e) => {
+      const rect = section.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+
+      const items = grid.querySelectorAll(".gallery-item");
+      items.forEach((item, index) => {
+        const factor = index % 2 === 0 ? 0.02 : -0.03; // Different speeds for different depths
+        item.style.transform = `translate(${x * factor}px, ${y * factor}px)`;
+      });
+    });
+
+    section.addEventListener("mouseleave", () => {
+      const items = grid.querySelectorAll(".gallery-item");
+      items.forEach((item) => {
+        item.style.transform = `translate(0px, 0px)`; // Reset
+      });
+    });
+
     const itemWrappers = Array.from(grid.querySelectorAll(".gallery-item"));
 
     const lightbox = document.getElementById("gallery-lightbox");
     const backdrop = document.getElementById("gallery-lb-backdrop");
     const panel = lightbox?.querySelector(".gallery-lightbox-panel");
-    const closeBtn = document.getElementById("gallery-lb-close");
-    const prevBtn = document.getElementById("gallery-lb-prev");
-    const nextBtn = document.getElementById("gallery-lb-next");
     const lbImage = document.getElementById("gallery-lb-image");
     const lbTitle = document.getElementById("gallery-lb-title");
     const lbText = document.getElementById("gallery-lb-text");
-    const lbProgressText = document.getElementById("gallery-lb-progress-text");
-    const lbProgressFill = document.getElementById("gallery-lb-progress-fill");
 
-    if (
-      !lightbox ||
-      !panel ||
-      !closeBtn ||
-      !prevBtn ||
-      !nextBtn ||
-      !lbImage ||
-      !lbTitle ||
-      !lbText ||
-      !lbProgressText ||
-      !lbProgressFill
-    ) {
+    if (!lightbox || !panel || !lbImage || !lbTitle || !lbText) {
       return;
     }
 
@@ -1089,13 +1119,44 @@ window.onload = () => {
     let lastFocused = null;
     let touchStartX = 0;
     let touchStartY = 0;
+    const imageReady = new Set();
+
+    function markImageReady(src) {
+      if (typeof src === "string" && src.length > 0) {
+        imageReady.add(src);
+      }
+    }
+
+    function warmImageCache() {
+      items.forEach((item) => {
+        const img = new Image();
+        img.src = item.src;
+        if (img.complete) {
+          markImageReady(item.src);
+          return;
+        }
+        img.addEventListener("load", () => markImageReady(item.src), {
+          once: true,
+        });
+      });
+    }
+
+    warmImageCache();
 
     function preloadNeighbors(idx) {
       const prev = items[(idx - 1 + items.length) % items.length];
       const next = items[(idx + 1) % items.length];
       [prev, next].forEach((item) => {
+        if (!item || imageReady.has(item.src)) return;
         const img = new Image();
         img.src = item.src;
+        if (img.complete) {
+          markImageReady(item.src);
+        } else {
+          img.addEventListener("load", () => markImageReady(item.src), {
+            once: true,
+          });
+        }
       });
     }
 
@@ -1103,31 +1164,45 @@ window.onload = () => {
       activeIndex = (idx + items.length) % items.length;
       const current = items[activeIndex];
 
-      lbImage.style.opacity = "0.12";
+      lbImage.style.opacity = "0";
+      lbImage.style.transition = "opacity 0.28s ease";
       lbImage.src = current.src;
       lbImage.alt = current.alt;
       lbTitle.textContent = current.title;
       lbText.textContent = current.text;
-      lbProgressText.textContent = activeIndex + 1 + " / " + items.length;
-      lbProgressFill.style.width =
-        ((activeIndex + 1) / items.length) * 100 + "%";
 
       preloadNeighbors(activeIndex);
 
-      lbImage.style.animation = "none";
-      void lbImage.offsetWidth;
-      if (!prefersReducedMotion) {
-        lbImage.style.animation = "galleryZoomIn 0.4s ease";
+      if (!prefersReducedMotion && typeof lbImage.animate === "function") {
+        lbImage.animate(
+          [
+            { transform: "scale(1.035)", opacity: 0.86 },
+            { transform: "scale(1)", opacity: 1 },
+          ],
+          {
+            duration: 420,
+            easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+            fill: "both",
+          },
+        );
       }
 
       const reveal = () => {
         lbImage.style.opacity = "1";
       };
 
-      if (lbImage.complete) {
-        requestAnimationFrame(reveal);
+      if (lbImage.complete || imageReady.has(current.src)) {
+        markImageReady(current.src);
+        requestAnimationFrame(() => requestAnimationFrame(reveal));
       } else {
-        lbImage.onload = reveal;
+        lbImage.addEventListener(
+          "load",
+          () => {
+            markImageReady(current.src);
+            reveal();
+          },
+          { once: true },
+        );
       }
     }
 
@@ -1165,16 +1240,21 @@ window.onload = () => {
 
     function openLightbox(idx, triggerEl) {
       lastFocused = triggerEl || document.activeElement;
-      updateLightbox(idx);
       lightbox.classList.add("open");
       lightbox.setAttribute("aria-hidden", "false");
-      panel.focus();
+      document.body.classList.add("gallery-lightbox-open");
+      requestAnimationFrame(() => {
+        updateLightbox(idx);
+        panel.focus();
+      });
       document.addEventListener("keydown", onGlobalKeyDown);
     }
 
     function closeLightbox() {
       lightbox.classList.remove("open");
       lightbox.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("gallery-lightbox-open");
+      lbImage.style.transform = "";
       document.removeEventListener("keydown", onGlobalKeyDown);
       if (lastFocused && typeof lastFocused.focus === "function") {
         lastFocused.focus();
@@ -1223,10 +1303,17 @@ window.onload = () => {
       }
     });
 
-    prevBtn.addEventListener("click", () => updateLightbox(activeIndex - 1));
-    nextBtn.addEventListener("click", () => updateLightbox(activeIndex + 1));
-    closeBtn.addEventListener("click", closeLightbox);
     backdrop?.addEventListener("click", closeLightbox);
+    // Allow clicking the panel (outside the image) to close as well
+    panel.addEventListener("click", (e) => {
+      // if click is exactly on panel or figure, but not the image/caption
+      if (
+        e.target === panel ||
+        e.target.classList.contains("gallery-lb-figure")
+      ) {
+        closeLightbox();
+      }
+    });
 
     panel.addEventListener("touchstart", (e) => {
       const touch = e.changedTouches[0];
