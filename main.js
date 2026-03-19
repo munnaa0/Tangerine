@@ -1499,6 +1499,9 @@ window.onload = () => {
           // Small delay to allow display flex to apply before adding class
           setTimeout(() => {
             finaleSection.classList.add("active");
+            // Make footer accessible after finale starts
+            const footer = finaleSection.querySelector(".story-footer");
+            if (footer) footer.setAttribute("aria-hidden", "false");
           }, 50);
         }, 1200); // Trigger just as the box finishes imploding
       }
