@@ -1101,46 +1101,61 @@ window.onload = () => {
         // Clear previous if any
         burstContainer.innerHTML = "";
 
-        // Spawn 200 massive parallel meteors (Bottom-Left -> Top-Right)
-        for (let i = 0; i < 200; i++) {
-          const star = document.createElement("div");
-          star.className = "burst-star";
+        // Spawn 200 massive parallel meteors (Bottom-Left -> Top-Right).
+        // Build them in small animation-frame batches to avoid a single-frame jank spike.
+        const totalStars = 200;
+        const starsPerFrame = 40;
+        const colors = [
+          "#ffffff", // white
+          "#ffd700", // gold
+          "#ff69b4", // pink
+          "#00ffff", // cyan
+          "#9370db", // purple
+          "#ff4500", // orange
+        ];
 
-          // Spread them across the bottom and left areas off-screen
-          // X from -20vw up to 100vw, Y from 50vh up to 150vh
-          const startX = Math.random() * 120 - 20;
-          const startY = Math.random() * 100 + 50;
+        const appendStarsBatch = (startIndex) => {
+          const fragment = document.createDocumentFragment();
+          const endIndex = Math.min(startIndex + starsPerFrame, totalStars);
 
-          star.style.setProperty("--sx", `${startX}vw`);
-          star.style.setProperty("--sy", `${startY}vh`);
+          for (let i = startIndex; i < endIndex; i++) {
+            const star = document.createElement("div");
+            star.className = "burst-star";
 
-          // Move massively Top-Right
-          star.style.setProperty("--tx", `150vw`);
-          star.style.setProperty("--ty", `-150vh`);
+            // Spread them across the bottom and left areas off-screen
+            // X from -20vw up to 100vw, Y from 50vh up to 150vh
+            const startX = Math.random() * 120 - 20;
+            const startY = Math.random() * 100 + 50;
 
-          // Long majestic timing: 2s to 4s travel time, staggered across 3+ seconds
-          const duration = 2.0 + Math.random() * 2.0;
-          const delay = Math.random() * 3.5;
-          const scale = 0.5 + Math.random() * 1.5;
+            star.style.setProperty("--sx", `${startX}vw`);
+            star.style.setProperty("--sy", `${startY}vh`);
 
-          star.style.setProperty("--s", `${scale}`);
+            // Move massively Top-Right
+            star.style.setProperty("--tx", `150vw`);
+            star.style.setProperty("--ty", `-150vh`);
 
-          // Lots of color variations
-          const colors = [
-            "#ffffff", // white
-            "#ffd700", // gold
-            "#ff69b4", // pink
-            "#00ffff", // cyan
-            "#9370db", // purple
-            "#ff4500", // orange
-          ];
-          const color = colors[Math.floor(Math.random() * colors.length)];
-          star.style.setProperty("--c", color);
+            // Long majestic timing: 2s to 4s travel time, staggered across 3+ seconds
+            const duration = 2.0 + Math.random() * 2.0;
+            const delay = Math.random() * 3.5;
+            const scale = 0.5 + Math.random() * 1.5;
 
-          star.style.animation = `starEruptParallel ${duration}s ${delay}s linear forwards`;
+            star.style.setProperty("--s", `${scale}`);
 
-          burstContainer.appendChild(star);
-        }
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            star.style.setProperty("--c", color);
+
+            star.style.animation = `starEruptParallel ${duration}s ${delay}s linear forwards`;
+            fragment.appendChild(star);
+          }
+
+          burstContainer.appendChild(fragment);
+
+          if (endIndex < totalStars) {
+            requestAnimationFrame(() => appendStarsBatch(endIndex));
+          }
+        };
+
+        appendStarsBatch(0);
       }
 
       // Trigger the main cosmic scene wish comet once (prevents the giant thick line issue)
