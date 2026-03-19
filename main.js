@@ -312,6 +312,17 @@ window.onload = () => {
               if (gallerySection) {
                 gallerySection.classList.add("revealed");
                 initGallery();
+
+                // Reveal the wish section only after gallery reveal finishes,
+                // then wait an additional 2 seconds.
+                const galleryRevealDurationMs = 1200;
+                const wishRevealDelayMs = 2000;
+                setTimeout(() => {
+                  const wishSection = document.getElementById("section-wish");
+                  if (wishSection) {
+                    wishSection.classList.add("revealed");
+                  }
+                }, galleryRevealDurationMs + wishRevealDelayMs);
               }
             }, 1700);
           }
