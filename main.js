@@ -1145,14 +1145,87 @@ window.onload = () => {
     );
   }
 
+  function createBurstFrameMonitor(sampleWindowMs = 1000) {
+    let lastTs = 0;
+    let startTs = 0;
+    let rafId = 0;
+    let samples = 0;
+    let longFrames = 0;
+    let reducedSuggested = false;
+    let running = false;
+
+    const onFrame = (ts) => {
+      if (!running) return;
+
+      if (!startTs) {
+        startTs = ts;
+        lastTs = ts;
+      }
+
+      const delta = ts - lastTs;
+      lastTs = ts;
+
+      // Ignore the first frame; detect sustained pacing issues afterwards.
+      if (samples > 0 && delta > 22) {
+        longFrames += 1;
+      }
+      samples += 1;
+
+      if (ts - startTs < sampleWindowMs) {
+        rafId = requestAnimationFrame(onFrame);
+      } else {
+        const longFrameRatio = longFrames / Math.max(samples - 1, 1);
+        reducedSuggested = longFrameRatio >= 0.3;
+        running = false;
+      }
+    };
+
+    return {
+      start() {
+        if (running) return;
+        running = true;
+        rafId = requestAnimationFrame(onFrame);
+      },
+      stop() {
+        if (!running) return;
+        running = false;
+        if (rafId) cancelAnimationFrame(rafId);
+      },
+      shouldReduce() {
+        return reducedSuggested;
+      },
+    };
+  }
+
   function launchWishBurst(burstContainer) {
     burstContainer.innerHTML = "";
 
-    const { totalStars, starsPerFrame } = burstProfile;
+    let runtimeTotalStars = burstProfile.totalStars;
+    let runtimeStarsPerFrame = burstProfile.starsPerFrame;
+    let reducedApplied = false;
+    const frameMonitor = createBurstFrameMonitor(1000);
+    frameMonitor.start();
+
     const appendBatch = (startIndex) => {
+      if (!reducedApplied && frameMonitor.shouldReduce()) {
+        // Dynamic downshift for low-end devices if pacing degrades.
+        runtimeTotalStars = Math.max(
+          Math.floor(burstProfile.totalStars * 0.72),
+          80,
+        );
+        runtimeStarsPerFrame = Math.max(
+          Math.floor(burstProfile.starsPerFrame * 0.6),
+          12,
+        );
+        reducedApplied = true;
+      }
+
       const fragment = document.createDocumentFragment();
       const activatedStars = [];
-      const endIndex = Math.min(startIndex + starsPerFrame, totalStars);
+      const endIndex = Math.min(
+        startIndex + runtimeStarsPerFrame,
+        runtimeTotalStars,
+      );
 
       for (let i = startIndex; i < endIndex; i++) {
         const star = burstStarPool[i];
@@ -1167,8 +1240,10 @@ window.onload = () => {
         activatedStars.forEach((star) => star.classList.add("active"));
       });
 
-      if (endIndex < totalStars) {
+      if (endIndex < runtimeTotalStars) {
         requestAnimationFrame(() => appendBatch(endIndex));
+      } else {
+        frameMonitor.stop();
       }
     };
 
