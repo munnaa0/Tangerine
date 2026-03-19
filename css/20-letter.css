@@ -19,17 +19,6 @@
   animation: letterSectionIn 1.4s ease-out both;
 }
 
-@keyframes letterSectionIn {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* ─── Premium Stardust Particles (around the letter) ──────────────────────── */
 
 .letter-stardust {
@@ -346,42 +335,6 @@
   animation: candleFlicker 3s ease-in-out infinite;
 }
 
-@keyframes candleFlicker {
-  0%,
-  100% {
-    opacity: 0.7;
-    background: radial-gradient(
-      ellipse 60% 50% at 30% 20%,
-      rgba(255, 200, 100, 0.12),
-      transparent 70%
-    );
-  }
-  25% {
-    opacity: 0.9;
-    background: radial-gradient(
-      ellipse 65% 55% at 32% 18%,
-      rgba(255, 190, 80, 0.16),
-      transparent 70%
-    );
-  }
-  50% {
-    opacity: 0.55;
-    background: radial-gradient(
-      ellipse 55% 45% at 28% 22%,
-      rgba(255, 210, 110, 0.1),
-      transparent 70%
-    );
-  }
-  75% {
-    opacity: 0.85;
-    background: radial-gradient(
-      ellipse 62% 52% at 34% 19%,
-      rgba(255, 195, 90, 0.14),
-      transparent 70%
-    );
-  }
-}
-
 /* ─── Letter Typography ─────────────────────────────────────────────────────── */
 
 .letter-greeting {
@@ -512,4 +465,3 @@
   animation: scrollDot 2s ease-in-out infinite;
   box-shadow: 0 0 4px rgba(255, 170, 0, 0.5);
 }
-

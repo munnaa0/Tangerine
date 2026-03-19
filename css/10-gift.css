@@ -67,21 +67,6 @@
   box-shadow: 0 0 6px rgba(255, 170, 0, 0.6);
 }
 
-@keyframes scrollDot {
-  0% {
-    transform: translateX(-50%) translateY(0);
-    opacity: 0.8;
-  }
-  70% {
-    transform: translateX(-50%) translateY(18px);
-    opacity: 0.2;
-  }
-  100% {
-    transform: translateX(-50%) translateY(0);
-    opacity: 0.8;
-  }
-}
-
 /* ─── Gift Section Layout ───────────────────────────────────────────────────── */
 
 .gift-section {
@@ -819,46 +804,6 @@
   }
 }
 
-/* ─── NEW 1: Title golden shimmer ───────────────────────────────────────────── */
-@keyframes titleShimmer {
-  0%,
-  100% {
-    text-shadow:
-      0 0 20px rgba(255, 170, 0, 0.5),
-      0 0 8px rgba(255, 242, 204, 0.4);
-    filter: brightness(1) drop-shadow(0 0 0 transparent);
-  }
-  50% {
-    text-shadow:
-      0 0 35px rgba(255, 215, 0, 0.95),
-      0 0 18px rgba(255, 242, 204, 0.85);
-    filter: brightness(1.2) drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
-  }
-}
-
-/* ─── NEW 2: Panel border breathing glow ────────────────────────────────────── */
-@keyframes panelGlow {
-  0%,
-  100% {
-    box-shadow:
-      0 14px 60px rgba(0, 0, 0, 0.85),
-      0 0 100px rgba(183, 110, 121, 0.1),
-      0 0 50px rgba(30, 12, 50, 0.5),
-      inset 0 1px 0 rgba(255, 242, 204, 0.15),
-      inset 0 -1px 0 rgba(183, 110, 121, 0.1);
-    border-color: rgba(255, 242, 204, 0.18);
-  }
-  50% {
-    box-shadow:
-      0 14px 60px rgba(0, 0, 0, 0.85),
-      0 0 120px rgba(183, 110, 121, 0.22),
-      0 0 70px rgba(212, 175, 55, 0.14),
-      inset 0 1px 0 rgba(255, 242, 204, 0.3),
-      inset 0 -1px 0 rgba(183, 110, 121, 0.2);
-    border-color: rgba(255, 242, 204, 0.32);
-  }
-}
-
 /* ─── NEW 3: Gift hint float (tap prompt) ───────────────────────────────────── */
 @keyframes hintFloat {
   0%,
@@ -871,4 +816,3 @@
     opacity: 1;
   }
 }
-
