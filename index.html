@@ -693,15 +693,29 @@
                     </div>
                 </div>
             </div>
-            <!-- Section 6: Make a Wish -->
+            <!-- Section 6: Make a Wish (Premium Redesign) -->
             <section class="wish-section" id="section-wish">
-                <div class="wish-container">
+                <!-- Massive Star Burst Container -->
+                <div id="wish-star-burst" class="wish-star-burst" aria-hidden="true"></div>
+
+                <!-- Feature 1: Floating background cosmic elements -->
+                <div class="wish-cosmic-bg" aria-hidden="true">
+                    <div class="floating-star fs-1">✨</div>
+                    <div class="floating-heart fh-1">💖</div>
+                    <div class="floating-star fs-2">🌟</div>
+                    <div class="floating-heart fh-2">💕</div>
+                    <div class="floating-star fs-3">✨</div>
+                    <div class="floating-heart fh-3">💗</div>
+                </div>
+
+                <!-- Title outside the box -->
+                <div class="wish-header">
                     <h2 class="wish-title">
                         Whisper to the Universe
                         <svg class="wish-icon"
                              viewBox="0 0 24 24"
-                             width="28"
-                             height="28"
+                             width="36"
+                             height="36"
                              fill="none"
                              stroke="currentColor"
                              stroke-width="2"
@@ -711,19 +725,40 @@
                         </svg>
                     </h2>
                     <p class="wish-subtitle">Make your birthday wish. It will be carved into the stars forever.</p>
+                </div>
+
+                <!-- The container box itself -->
+                <div class="wish-container premium-glass">
+                    <!-- Feature 2: Animated tracing light border -->
+                    <div class="border-trace"></div>
+                    
+                    <!-- Feature 3: Interactive Stardust Field inside the box -->
+                    <div class="wish-stardust"></div>
+                    
                     <div class="wish-input-wrapper" id="wish-input-wrapper">
-                        <textarea id="wish-input" placeholder="My wish is..."></textarea>
-                        <button id="wish-btn" aria-label="Send wish">Send to the Stars ✨</button>
+                        <!-- Feature 4: Custom aesthetic placeholder and glowing focus field -->
+                        <div class="textarea-container">
+                            <textarea id="wish-input" placeholder="Type your secret wish here..."></textarea>
+                            <div class="textarea-glow"></div>
+                        </div>
+                        
+                        <!-- Feature 5: Cosmic Button with hover sparks -->
+                        <button id="wish-btn" class="cosmic-btn" aria-label="Send wish">
+                            <span class="btn-text">Send to the Stars ✨</span>
+                            <span class="btn-sparks"></span>
+                            <div class="btn-glow-layer"></div>
+                        </button>
                     </div>
                 </div>
-            </section>
-            <!-- Section 7: Grand Finale -->
-            <section class="finale-section" id="section-finale">
-                <div class="finale-content">
-                    <p class="finale-text line-1">The universe is vast...</p>
-                    <p class="finale-text line-2">but my favorite part of it</p>
-                    <p class="finale-text line-3">is you.</p>
-                    <h1 class="finale-title">Happy Birthday, Tanjila</h1>
+
+                <!-- Section 7: Grand Finale (Now embedded perfectly where the box was) -->
+                <div class="finale-section" id="section-finale">
+                    <div class="finale-content">
+                        <p class="finale-text line-1">The universe is vast...</p>
+                        <p class="finale-text line-2">but my favorite part of it</p>
+                        <p class="finale-text line-3">is you.</p>
+                        <h1 class="finale-title">Happy Birthday, Tanjila</h1>
+                    </div>
                 </div>
             </section>
         </div>
