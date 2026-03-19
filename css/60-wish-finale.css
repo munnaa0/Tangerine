@@ -312,6 +312,10 @@
   backface-visibility: hidden;
 }
 
+.burst-star.active {
+  animation: starEruptParallel var(--dur, 2.5s) var(--delay, 0s) linear forwards;
+}
+
 /* The long tail of the shooting star */
 .burst-star::after {
   content: "";
@@ -703,4 +707,48 @@
   opacity: 1;
   transform: scale(1);
   transition-delay: 5.5s;
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  .wish-section {
+    padding: 0 14px;
+  }
+
+  .wish-container.premium-glass {
+    width: min(660px, 94vw);
+    padding: 28px 20px;
+    border-radius: 20px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  #wish-input {
+    min-height: 120px;
+    font-size: 1.05rem;
+    padding: 18px;
+  }
+
+  .cosmic-btn {
+    font-size: 1.05rem;
+    padding: 14px 28px;
+  }
+
+  .burst-star {
+    width: 3px;
+    height: 3px;
+    box-shadow:
+      0 0 8px 2px var(--c, #ffffff),
+      0 0 14px 4px #fff;
+  }
+
+  .burst-star::after {
+    width: 2px;
+    height: 240px;
+  }
+
+  .burst-star::before {
+    width: 8px;
+    height: 70px;
+    background-size: 4px 12px;
+  }
 }
