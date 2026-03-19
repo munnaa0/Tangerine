@@ -290,6 +290,7 @@
   pointer-events: none;
   z-index: 10;
   overflow: hidden;
+  contain: layout paint style;
 }
 
 .burst-star {
@@ -307,6 +308,8 @@
   /* Rotate 45deg to point head top-right */
   transform: rotate(45deg) scale(0);
   transform-origin: center center;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
 }
 
 /* The long tail of the shooting star */
