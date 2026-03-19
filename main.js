@@ -1074,49 +1074,85 @@ window.onload = () => {
 
       // Transition the box out
       wishInputContainer.classList.add("sent");
+      const wishHeader = document.querySelector(".wish-header");
+      const wishCosmicBg = document.querySelector(".wish-cosmic-bg");
 
-      // Spawn the big wishing star in the actual Three.js scene!
+      // We removed the inline opacity styles and added class lists instead
+      if (wishHeader) wishHeader.classList.add("sent");
+      if (wishCosmicBg) wishCosmicBg.classList.add("sent");
+
+      const inputWrapper = document.getElementById("wish-input-wrapper");
+      if (inputWrapper) inputWrapper.classList.add("sent");
+
+      // Grand Meteor Shower Burst Effect in DOM
+      const burstContainer = document.getElementById("wish-star-burst");
+      if (burstContainer) {
+        // Clear previous if any
+        burstContainer.innerHTML = "";
+
+        // Spawn 200 massive parallel meteors (Bottom-Left -> Top-Right)
+        for (let i = 0; i < 200; i++) {
+          const star = document.createElement("div");
+          star.className = "burst-star";
+
+          // Spread them across the bottom and left areas off-screen
+          // X from -20vw up to 100vw, Y from 50vh up to 150vh
+          const startX = Math.random() * 120 - 20;
+          const startY = Math.random() * 100 + 50;
+
+          star.style.setProperty("--sx", `${startX}vw`);
+          star.style.setProperty("--sy", `${startY}vh`);
+
+          // Move massively Top-Right
+          star.style.setProperty("--tx", `150vw`);
+          star.style.setProperty("--ty", `-150vh`);
+
+          // Long majestic timing: 2s to 4s travel time, staggered across 3+ seconds
+          const duration = 2.0 + Math.random() * 2.0;
+          const delay = Math.random() * 3.5;
+          const scale = 0.5 + Math.random() * 1.5;
+
+          star.style.setProperty("--s", `${scale}`);
+
+          // Lots of color variations
+          const colors = [
+            "#ffffff", // white
+            "#ffd700", // gold
+            "#ff69b4", // pink
+            "#00ffff", // cyan
+            "#9370db", // purple
+            "#ff4500", // orange
+          ];
+          const color = colors[Math.floor(Math.random() * colors.length)];
+          star.style.setProperty("--c", color);
+
+          star.style.animation = `starEruptParallel ${duration}s ${delay}s linear forwards`;
+
+          burstContainer.appendChild(star);
+        }
+      }
+
+      // Trigger the main cosmic scene wish comet once (prevents the giant thick line issue)
       if (app.comets && typeof app.comets.spawnWishComet === "function") {
         app.comets.spawnWishComet();
       } else {
-        // Fallback or custom logic if CometSystem doesn't have it
         console.log("Wish sent to the stars!");
       }
 
-      // Reveal finale section as she scrolls
+      // Reveal finale section exactly where the box was
       if (finaleSection) {
-        finaleSection.style.display = "flex";
-
-        // Let it layout, then smoothly scroll to it automatically
         setTimeout(() => {
-          const scrollWrapper = document.getElementById("scroll-wrapper");
-          if (scrollWrapper) {
-            scrollWrapper.scrollTo({
-              top: scrollWrapper.scrollHeight,
-              behavior: "smooth",
-            });
-          }
-        }, 1500); // give the comet time to appear
+          finaleSection.style.display = "flex";
+          // Small delay to allow display flex to apply before adding class
+          setTimeout(() => {
+            finaleSection.classList.add("active");
+          }, 50);
+        }, 1200); // Trigger just as the box finishes imploding
       }
     });
 
-    // Make the finale text appear based on scroll using IntersectionObserver
-    if (finaleSection) {
-      const scrollWrapper = document.getElementById("scroll-wrapper");
-      const finaleObserver = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              finaleSection.classList.add("active");
-              finaleObserver.unobserve(entry.target);
-            }
-          });
-        },
-        { root: scrollWrapper, threshold: 0.3 },
-      );
-
-      finaleObserver.observe(finaleSection);
-    }
+    // We no longer need the IntersectionObserver for finale text, because we
+    // manually trigger it visually upon clicking the wish button now.
   }
 
   let count = 3;
