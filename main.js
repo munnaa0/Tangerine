@@ -139,6 +139,44 @@ window.onload = () => {
   const birthdayText = document.getElementById("happy-birthday-text");
   const blowBtn = document.getElementById("blow-candle-btn");
   const bgm = document.getElementById("bgm");
+  const originalBirthdayText = birthdayText
+    ? birthdayText.textContent.trim()
+    : "";
+
+  const mobileBirthdayMedia = window.matchMedia("(max-width: 430px)");
+
+  function formatBirthdayTextForViewport() {
+    if (!birthdayText || !originalBirthdayText) return;
+
+    if (mobileBirthdayMedia.matches) {
+      if (birthdayText.dataset.mobileFormatted === "1") return;
+
+      const match = originalBirthdayText.match(/^(Happy\s+Birthday)\s+(.+)$/i);
+      if (match) {
+        birthdayText.innerHTML =
+          '<span class="hb-mobile-line">' +
+          match[1] +
+          "</span><br>" +
+          '<span class="hb-mobile-line">' +
+          match[2] +
+          "</span>";
+        birthdayText.dataset.mobileFormatted = "1";
+      }
+    } else if (birthdayText.dataset.mobileFormatted === "1") {
+      birthdayText.textContent = originalBirthdayText;
+      delete birthdayText.dataset.mobileFormatted;
+    }
+  }
+
+  formatBirthdayTextForViewport();
+  if (typeof mobileBirthdayMedia.addEventListener === "function") {
+    mobileBirthdayMedia.addEventListener(
+      "change",
+      formatBirthdayTextForViewport,
+    );
+  } else if (typeof mobileBirthdayMedia.addListener === "function") {
+    mobileBirthdayMedia.addListener(formatBirthdayTextForViewport);
+  }
 
   // Called after the user clicks "Blow the Candle"
   function triggerBlowSequence() {
