@@ -21,6 +21,8 @@ class CosmosApp {
     this.addEventListeners();
 
     this.clock = new THREE.Clock();
+    this.isCosmicMotionStarted = false;
+    this.motionStartTime = 0;
     this.animate();
   }
 
@@ -98,16 +100,25 @@ class CosmosApp {
     this.composer.setSize(this.width, this.height);
   }
 
+  startCosmicMotion() {
+    if (this.isCosmicMotionStarted) return;
+    this.motionStartTime = this.clock.getElapsedTime();
+    this.isCosmicMotionStarted = true;
+  }
+
   animate() {
     requestAnimationFrame(this.animate.bind(this));
 
-    const time = this.clock.getElapsedTime();
+    const rawTime = this.clock.getElapsedTime();
+    const motionTime = this.isCosmicMotionStarted
+      ? rawTime - this.motionStartTime
+      : 0;
 
     // Update systems
-    if (this.nebula) this.nebula.update(time);
-    if (this.starfield) this.starfield.update(time);
-    if (this.planet) this.planet.update(time);
-    if (this.comets) this.comets.update(time);
+    if (this.nebula) this.nebula.update(motionTime);
+    if (this.starfield) this.starfield.update(motionTime);
+    if (this.planet) this.planet.update(motionTime);
+    if (this.comets) this.comets.update(motionTime);
     if (this.mouseTrail) this.mouseTrail.update();
 
     // Use Composer instead of Renderer directly to apply Bloom
@@ -131,6 +142,8 @@ window.onload = () => {
 
   // Called after the user clicks "Blow the Candle"
   function triggerBlowSequence() {
+    app.startCosmicMotion();
+
     blowBtn.style.display = "none";
     candlePrompt.style.transition = "opacity 0.4s";
     candlePrompt.style.opacity = "0";
