@@ -47,12 +47,15 @@ export class Starfield {
 
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    geometry.attributes.position.setUsage(THREE.DynamicDrawUsage);
+    geometry.attributes.color.setUsage(THREE.DynamicDrawUsage);
 
     // Save original positions and setup targets for constellation animation
     this.originalPositions = new Float32Array(positions);
     this.targetPositions = new Float32Array(positions);
     this.isFormingConstellation = false;
     this.constellationProgress = 0;
+    this.lastUpdateTime = 0;
 
     // Create circle texture procedurally via canvas for round stars
     const canvas = document.createElement("canvas");
@@ -161,9 +164,12 @@ export class Starfield {
 
     // Animate the stars into the "23" formation
     if (this.isFormingConstellation && this.constellationProgress < 1.0) {
-      // Fixed increment independent of complex clock delta calculations,
-      // taking approx 4 seconds at 60fps (0.004 * 60 = 0.24 progress/sec)
-      this.constellationProgress += 0.004;
+      const delta =
+        this.lastUpdateTime > 0
+          ? Math.max(0, time - this.lastUpdateTime)
+          : 1 / 60;
+      // Keep roughly the same transition duration while making it frame-rate independent.
+      this.constellationProgress += delta * 0.24;
       if (this.constellationProgress > 1.0) this.constellationProgress = 1.0;
 
       const positions = this.points.geometry.attributes.position.array;
@@ -181,5 +187,7 @@ export class Starfield {
       // CRITICAL: Notify Three.js that positions changed
       this.points.geometry.attributes.position.needsUpdate = true;
     }
+
+    this.lastUpdateTime = time;
   }
 }
