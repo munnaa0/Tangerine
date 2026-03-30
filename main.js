@@ -219,6 +219,50 @@ class CosmosApp {
 window.onload = () => {
   const app = new CosmosApp();
 
+  // Access Gate Logic
+  const accessGate = document.getElementById("access-gate");
+  const accessSubmit = document.getElementById("access-submit");
+  const accessMsg = document.getElementById("access-msg");
+  const daySelect = document.getElementById("dob-day");
+  const monthSelect = document.getElementById("dob-month");
+  const yearSelect = document.getElementById("dob-year");
+  let startIntroCountdown = () => {};
+
+  if (accessSubmit) {
+    accessSubmit.addEventListener("click", () => {
+      const d = daySelect.value;
+      const m = monthSelect.value;
+      const y = yearSelect.value;
+
+      if (!d || !m || !y) {
+        accessMsg.textContent =
+          "Sobgula to select koro, naile kivabe verify korbo?!";
+        accessMsg.className = "error";
+        return;
+      }
+
+      if (d === "14" && m === "9" && y === "2002") {
+        accessMsg.textContent = "Correct answer! Jak Mone Ache tomar!!";
+        accessMsg.className = "success";
+
+        setTimeout(() => {
+          accessGate.classList.add("granted");
+          // Start intro sequence only after the gate begins fading out.
+          setTimeout(() => startIntroCountdown(), 1000);
+        }, 1000);
+      } else {
+        accessMsg.textContent = "Tumi TANJILA NA !! Othoba Vule gecho :) ";
+        accessMsg.className = "error";
+
+        // Remove class to retrigger animation later if needed
+        setTimeout(() => accessMsg.classList.remove("error"), 500);
+        // Force reflow to restart animation on next click
+        void accessMsg.offsetWidth;
+        accessMsg.classList.add("error");
+      }
+    });
+  }
+
   // Intro Animation Logic
   const overlay = document.getElementById("intro-overlay");
   const instruction = document.getElementById("intro-instruction");
@@ -231,6 +275,41 @@ window.onload = () => {
   const originalBirthdayText = birthdayText
     ? birthdayText.textContent.trim()
     : "";
+  let introCountdownStarted = false;
+
+  startIntroCountdown = () => {
+    if (introCountdownStarted) return;
+    introCountdownStarted = true;
+
+    let count = 3;
+    countdownEl.textContent = count;
+
+    const interval = setInterval(() => {
+      count--;
+      if (count > 0) {
+        countdownEl.textContent = count;
+      } else {
+        clearInterval(interval);
+
+        // Countdown finished — smoothly collapse instruction & countdown, show the button
+        instruction.style.opacity = "0";
+        instruction.style.maxHeight = "0";
+        instruction.style.marginBottom = "0";
+        countdownEl.style.opacity = "0";
+        countdownEl.style.maxHeight = "0";
+        countdownEl.style.marginBottom = "0";
+
+        // Reveal the candle prompt and blow-candle button
+        candlePrompt.classList.add("visible");
+        blowBtn.classList.add("visible");
+      }
+    }, 1000);
+  };
+
+  // Run intro countdown immediately only if access gate is not active.
+  if (!accessGate || accessGate.classList.contains("granted")) {
+    startIntroCountdown();
+  }
 
   const mobileBirthdayMedia = window.matchMedia("(max-width: 430px)");
 
@@ -1686,26 +1765,4 @@ window.onload = () => {
     // We no longer need the IntersectionObserver for finale text, because we
     // manually trigger it visually upon clicking the wish button now.
   }
-
-  let count = 3;
-  const interval = setInterval(() => {
-    count--;
-    if (count > 0) {
-      countdownEl.textContent = count;
-    } else {
-      clearInterval(interval);
-
-      // Countdown finished — smoothly collapse instruction & countdown, show the button
-      instruction.style.opacity = "0";
-      instruction.style.maxHeight = "0";
-      instruction.style.marginBottom = "0";
-      countdownEl.style.opacity = "0";
-      countdownEl.style.maxHeight = "0";
-      countdownEl.style.marginBottom = "0";
-
-      // Reveal the candle prompt and blow-candle button
-      candlePrompt.classList.add("visible");
-      blowBtn.classList.add("visible");
-    }
-  }, 1000);
 };

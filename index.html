@@ -17,6 +17,83 @@
         </script>
     </head>
     <body>
+        <div id="access-gate">
+            <div class="access-content">
+                <h2 class="access-title">Tumi ki Asolei Tanjila ?!</h2>
+                <p class="access-subtitle">Access pete nicher Question er Right Ans Daw -</p>
+                <p class="access-question">Amar Birthday Kobe ?</p>
+                <div class="custom-date-picker">
+                    <div class="picker-group">
+                        <select id="dob-day" class="glow-select">
+                            <option value="" disabled selected>Day</option>
+                            <option value="1">01</option>
+                            <option value="2">02</option>
+                            <option value="3">03</option>
+                            <option value="4">04</option>
+                            <option value="5">05</option>
+                            <option value="6">06</option>
+                            <option value="7">07</option>
+                            <option value="8">08</option>
+                            <option value="9">09</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                            <option value="18">18</option>
+                            <option value="19">19</option>
+                            <option value="20">20</option>
+                            <option value="21">21</option>
+                            <option value="22">22</option>
+                            <option value="23">23</option>
+                            <option value="24">24</option>
+                            <option value="25">25</option>
+                            <option value="26">26</option>
+                            <option value="27">27</option>
+                            <option value="28">28</option>
+                            <option value="29">29</option>
+                            <option value="30">30</option>
+                            <option value="31">31</option>
+                        </select>
+                    </div>
+                    <div class="picker-group">
+                        <select id="dob-month" class="glow-select">
+                            <option value="" disabled selected>Month</option>
+                            <option value="1">Jan</option>
+                            <option value="2">Feb</option>
+                            <option value="3">Mar</option>
+                            <option value="4">Apr</option>
+                            <option value="5">May</option>
+                            <option value="6">Jun</option>
+                            <option value="7">Jul</option>
+                            <option value="8">Aug</option>
+                            <option value="9">Sept</option>
+                            <option value="10">Oct</option>
+                            <option value="11">Nov</option>
+                            <option value="12">Dec</option>
+                        </select>
+                    </div>
+                    <div class="picker-group">
+                        <select id="dob-year" class="glow-select">
+                            <option value="" disabled selected>Year</option>
+                            <option value="1999">1999</option>
+                            <option value="2000">2000</option>
+                            <option value="2001">2001</option>
+                            <option value="2002">2002</option>
+                            <option value="2003">2003</option>
+                            <option value="2004">2004</option>
+                            <option value="2005">2005</option>
+                            
+                        </select>
+                    </div>
+                </div>
+                <button id="access-submit" class="glow-btn">Submit</button>
+                <p id="access-msg" class="hidden"></p>
+            </div>
+        </div>
         <audio id="bgm" src="bgm.mp3" loop></audio>
         <div id="intro-overlay">
             <h1 id="intro-instruction">Blow the candle</h1>
@@ -33,7 +110,6 @@
             <h1 id="happy-birthday-text">Happy Birthday Tanjila!</h1>
         </div>
         <div id="scroll-wrapper">
-      
             <div class="scroll-spacer">
                 <div class="scroll-indicator" aria-hidden="true">
                     <span></span>
@@ -41,7 +117,6 @@
             </div>
             <!-- Section 1: The Gift -->
             <section class="gift-section" id="section-gift">
-                
                 <div class="gift-title-container">
                     <h2 class="gift-title">A Gift for My Cutie</h2>
                     <div class="gift-title-stars">
@@ -50,10 +125,8 @@
                 </div>
                 <div class="gift-content">
                     <div class="gift-box-wrapper premium-gift-stage">
-                        
                         <div class="magical-aura"></div>
                         <div class="celestial-ring" aria-hidden="true"></div>
-                        
                         <div class="orbit-elements">
                             <div class="orbit-elem oe1" aria-hidden="true">💖</div>
                             <div class="orbit-elem oe2" aria-hidden="true">✨</div>
@@ -66,9 +139,7 @@
                              tabindex="0"
                              aria-pressed="false"
                              aria-label="Open gift message">
-                            
                             <div class="gift-light-beam"></div>
-                            
                             <div class="gift-sparkles">
                                 <svg class="sparkle s1" viewBox="0 0 24 24">
                                     <path d="M12 0L14.5 8.5L24 12L14.5 15.5L12 24L9.5 15.5L0 12L9.5 8.5Z" fill="#ffb703" />
@@ -80,7 +151,6 @@
                                     <path d="M12 0L14.5 8.5L24 12L14.5 15.5L12 24L9.5 15.5L0 12L9.5 8.5Z" fill="#00e5ff" />
                                 </svg>
                             </div>
-                            
                             <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbzFsaWNsNjR5c21wbWJuZnZzdGR5N2w4ZDBnazFlZWtiZGh2OTRpaCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/At48Y4dT3oDXx64KQj/giphy.gif"
                                  alt="Gift Box"
                                  class="gift-box-image" />
@@ -99,13 +169,11 @@
             </section>
             <!-- Section 2: Love Letter-->
             <section class="letter-section" id="section-letter">
-                
                 <div class="letter-stardust" aria-hidden="true">
                     <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
                 </div>
                 <div class="letter-inner" id="letter-tilt-container">
                     <h2 class="letter-title">
-                        
                         <svg class="title-icon"
                              viewBox="0 0 24 24"
                              width="32"
@@ -120,7 +188,6 @@
                         </svg>
                         A Love Letter
                     </h2>
-                    
                     <button id="wax-seal-btn" class="wax-seal-btn" aria-label="Open Letter">
                         <div class="seal-ring">
                             <svg viewBox="0 0 100 100">
@@ -130,11 +197,9 @@
                         </div>
                         <span class="seal-text">Click to Open</span>
                     </button>
-                    
                     <div class="letter-card locked" id="letter-card">
                         <div class="card-border-glow"></div>
                         <div class="candlelight" aria-hidden="true"></div>
-                        
                         <svg class="ornament top-left" viewBox="0 0 50 50">
                             <path d="M0,0 L20,0 A30,30 0 0,1 50,30 L50,50 L20,50 A30,30 0 0,1 0,20 Z" fill="rgba(212,175,55,0.1)" />
                             <path d="M5,5 L15,5 A30,30 0 0,1 45,35 L45,45 L15,45 A30,30 0 0,1 5,15 Z" fill="none" stroke="rgba(212,175,55,0.4)" stroke-width="1" />
