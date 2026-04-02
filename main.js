@@ -1631,6 +1631,26 @@ window.onload = () => {
   const wishInput = document.getElementById("wish-input");
   const finaleSection = document.getElementById("section-finale");
 
+  const GOOGLE_FORM_ACTION_URL =
+    "https://docs.google.com/forms/d/e/1FAIpQLSfSCMkix8jCXjBOCu3lL_Gu1RrVDxQ0qUz0tJjsfhiNdC2Ezw/formResponse";
+  const GOOGLE_FORM_WISH_FIELD = "entry.149920223";
+
+  function submitWishToGoogleForm(message) {
+    const formData = new URLSearchParams();
+    formData.append(GOOGLE_FORM_WISH_FIELD, message);
+    formData.append("fvv", "1");
+    formData.append("pageHistory", "0");
+
+    return fetch(GOOGLE_FORM_ACTION_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+      },
+      body: formData,
+    }).catch(() => null);
+  }
+
   const isMobileWishDevice = window.matchMedia(
     "(max-width: 768px), (pointer: coarse)",
   ).matches;
@@ -1814,13 +1834,18 @@ window.onload = () => {
     let wishSent = false;
 
     wishBtn.addEventListener("click", () => {
-      if (wishInput.value.trim() === "") {
+      const wishMessage = wishInput.value.trim();
+      if (wishMessage === "") {
         wishInput.focus();
         return;
       }
 
       if (wishSent) return;
       wishSent = true;
+
+      // Fire-and-forget submit keeps the existing animation flow instant.
+      void submitWishToGoogleForm(wishMessage);
+
       wishInputContainer.classList.add("sent");
       const wishHeader = document.querySelector(".wish-header");
       const wishCosmicBg = document.querySelector(".wish-cosmic-bg");
