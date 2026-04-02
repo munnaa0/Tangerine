@@ -68,6 +68,11 @@
   justify-content: center;
 }
 
+.picker-group {
+  position: relative;
+  min-width: 100px;
+}
+
 .glow-select {
   appearance: none;
   background: rgba(0, 0, 0, 0.4);
@@ -82,7 +87,87 @@
   transition: all 0.3s ease;
   box-shadow: 0 0 10px rgba(255, 183, 3, 0.1);
   text-align: center;
+  text-align-last: center;
+  -moz-text-align-last: center;
   min-width: 100px;
+}
+
+.glow-select.native-select-hidden {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.custom-select-trigger {
+  width: 100%;
+  min-width: 100px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(255, 183, 3, 0.4);
+  color: #fff;
+  padding: 0.8rem 1.5rem;
+  font-size: 1.2rem;
+  border-radius: 10px;
+  outline: none;
+  cursor: pointer;
+  font-family: "Lora", serif;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(255, 183, 3, 0.1);
+  text-align: center;
+}
+
+.custom-select-trigger:hover,
+.custom-select-trigger:focus-visible,
+.picker-group.open .custom-select-trigger {
+  border-color: #ffb703;
+  box-shadow:
+    0 0 15px rgba(255, 183, 3, 0.4),
+    inset 0 0 10px rgba(255, 183, 3, 0.2);
+  transform: translateY(-2px);
+}
+
+.custom-select-list {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #1b0f1a;
+  border: 2px solid rgba(255, 183, 3, 0.45);
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+  padding: 0.25rem;
+  z-index: 8;
+  display: none;
+}
+
+.picker-group.open .custom-select-list {
+  display: block;
+}
+
+.custom-select-option {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-family: "Lora", serif;
+  font-size: 1.2rem;
+  text-align: center;
+  padding: 0.55rem 0.4rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.custom-select-option:hover,
+.custom-select-option.active {
+  background: rgba(255, 183, 3, 0.2);
+}
+
+.custom-select-option:disabled {
+  opacity: 0.7;
+  cursor: default;
 }
 
 .glow-select:focus,
@@ -97,6 +182,7 @@
 .glow-select option {
   background: #1b0f1a;
   color: #fff;
+  text-align: center;
 }
 
 .glow-btn {
@@ -178,5 +264,19 @@
     padding: 0.6rem 0.5rem;
     font-size: 1rem;
     min-width: 80px;
+  }
+
+  .picker-group {
+    min-width: 80px;
+  }
+
+  .custom-select-trigger {
+    min-width: 80px;
+    padding: 0.6rem 0.5rem;
+    font-size: 1rem;
+  }
+
+  .custom-select-option {
+    font-size: 1rem;
   }
 }
