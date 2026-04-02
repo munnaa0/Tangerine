@@ -5,15 +5,13 @@ export class MouseTrail {
     this.scene = scene;
     this.camera = camera;
     this.maxParticles = maxParticles;
-    this.particles = []; // Logical particles { position, life, velocity, color }
+    this.particles = [];
     this.particleIndex = 0;
     this.lastEmitTime = 0;
-
-    // Initialize raw geometry buffer (pre-allocated for performance)
     this.geometry = new THREE.BufferGeometry();
     this.positions = new Float32Array(this.maxParticles * 3);
     this.colors = new Float32Array(this.maxParticles * 3);
-    this.sizes = new Float32Array(this.maxParticles); // Custom size attribute
+    this.sizes = new Float32Array(this.maxParticles);
 
     for (let i = 0; i < this.maxParticles; i++) {
       this.positions[i * 3] = 0;
@@ -23,8 +21,6 @@ export class MouseTrail {
       this.colors[i * 3 + 1] = 0;
       this.colors[i * 3 + 2] = 0;
       this.sizes[i] = 0;
-
-      // Logical particle pool initialization
       this.particles.push({
         life: 0,
         x: 0,
@@ -54,8 +50,6 @@ export class MouseTrail {
     this.geometry.attributes.position.setUsage(THREE.DynamicDrawUsage);
     this.geometry.attributes.color.setUsage(THREE.DynamicDrawUsage);
     this.geometry.attributes.size.setUsage(THREE.DynamicDrawUsage);
-
-    // Create glowing dot texture using canvas
     const canvas = document.createElement("canvas");
     canvas.width = 16;
     canvas.height = 16;
@@ -67,8 +61,6 @@ export class MouseTrail {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 16, 16);
     const texture = new THREE.CanvasTexture(canvas);
-
-    // Custom shader material for points with variable sizes
     this.material = new THREE.ShaderMaterial({
       uniforms: {
         pointTexture: { value: texture },
@@ -80,7 +72,6 @@ export class MouseTrail {
                 void main() {
                     vColor = color;
                     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                    // Point size perspective scaling
                     gl_PointSize = size * (300.0 / -mvPosition.z);
                     gl_Position = projectionMatrix * mvPosition;
                 }
@@ -90,7 +81,7 @@ export class MouseTrail {
                 varying vec3 vColor;
                 void main() {
                     gl_FragColor = vec4(vColor, 1.0) * texture2D(pointTexture, gl_PointCoord);
-                    if (gl_FragColor.a < 0.05) discard; // Performance optimization
+                    if (gl_FragColor.a < 0.05) discard;
                 }
             `,
       blending: THREE.AdditiveBlending,
@@ -101,12 +92,10 @@ export class MouseTrail {
 
     this.particleSystem = new THREE.Points(this.geometry, this.material);
     this.scene.add(this.particleSystem);
-
-    // Interaction Setup
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
     this.intersectPoint = new THREE.Vector3();
-    this.plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 50); // Invisible interaction plane
+    this.plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 50);
 
     window.addEventListener("mousemove", this.onMouseMove.bind(this), {
       passive: true,
@@ -116,18 +105,14 @@ export class MouseTrail {
   onMouseMove(event) {
     const now = performance.now();
     if (now - this.lastEmitTime < 16) return;
-
-    // Normalize mouse coordinates (-1 to +1)
     this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-    // Raycast from camera to the mathematical plane
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const intersectPoint = this.intersectPoint;
     this.raycaster.ray.intersectPlane(this.plane, intersectPoint);
 
     if (intersectPoint) {
-      this.emitParticles(intersectPoint, 3); // Emit 3 particles per frame on move
+      this.emitParticles(intersectPoint, 3);
       this.lastEmitTime = now;
     }
   }
@@ -140,29 +125,24 @@ export class MouseTrail {
       p.x = origin.x + (Math.random() - 0.5) * 2;
       p.y = origin.y + (Math.random() - 0.5) * 2;
       p.z = origin.z + (Math.random() - 0.5) * 2;
-
-      // Random expanding velocity
       p.vx = (Math.random() - 0.5) * 0.5;
       p.vy = (Math.random() - 0.5) * 0.5;
       p.vz = (Math.random() - 0.5) * 0.5;
-
-      // Neon color palette for the trail
       const colorRgb = [
-        [0.2, 0.8, 1.0], // Cyan
-        [0.8, 0.2, 1.0], // Purple
-        [1.0, 1.0, 1.0], // White
+        [0.2, 0.8, 1.0],
+        [0.8, 0.2, 1.0],
+        [1.0, 1.0, 1.0],
       ][Math.floor(Math.random() * 3)];
 
       p.r = colorRgb[0];
       p.g = colorRgb[1];
       p.b = colorRgb[2];
 
-      this.particleIndex = (this.particleIndex + 1) % this.maxParticles; // Circular buffer
+      this.particleIndex = (this.particleIndex + 1) % this.maxParticles;
     }
   }
 
   update() {
-    // Update physics and buffer attributes
     const positionAttr = this.geometry.attributes.position;
     const colorAttr = this.geometry.attributes.color;
     const sizeAttr = this.geometry.attributes.size;
@@ -173,34 +153,22 @@ export class MouseTrail {
 
       if (p.life > 0) {
         changed = true;
-        // Decay life
         p.life -= 0.015;
         if (p.life < 0) p.life = 0;
-
-        // Move
         p.x += p.vx;
         p.y += p.vy;
         p.z += p.vz;
-
-        // Add gravity/drag (optional, makes it look like it's drifting)
         p.vx *= 0.98;
         p.vy -= 0.005;
         p.vz *= 0.98;
-
-        // Update raw arrays
         positionAttr.array[i * 3] = p.x;
         positionAttr.array[i * 3 + 1] = p.y;
         positionAttr.array[i * 3 + 2] = p.z;
-
-        // Fade color based on life
         colorAttr.array[i * 3] = p.r * p.life;
         colorAttr.array[i * 3 + 1] = p.g * p.life;
         colorAttr.array[i * 3 + 2] = p.b * p.life;
-
-        // Scale size based on life (starts big, shrinks)
         sizeAttr.array[i] = 15.0 * p.life;
       } else {
-        // Hide dead particles
         if (sizeAttr.array[i] !== 0) {
           sizeAttr.array[i] = 0;
           changed = true;
@@ -208,8 +176,6 @@ export class MouseTrail {
       }
     }
     if (!changed) return;
-
-    // Notify Three.js that the buffers changed
     positionAttr.needsUpdate = true;
     colorAttr.needsUpdate = true;
     sizeAttr.needsUpdate = true;

@@ -58,7 +58,6 @@ class CosmosApp {
 
   initScene() {
     this.scene = new THREE.Scene();
-    // A tiny bit of fog to blend the deepest stars
     this.scene.fog = new THREE.FogExp2(0x030308, 0.0005);
 
     this.camera = new THREE.PerspectiveCamera(
@@ -77,7 +76,7 @@ class CosmosApp {
 
     this.renderer.setSize(this.width, this.height);
     this.renderer.setPixelRatio(this.dynamicPixelRatio);
-    this.renderer.toneMapping = THREE.ReinhardToneMapping; // Better colors with HDR bloom
+    this.renderer.toneMapping = THREE.ReinhardToneMapping;
     this.renderer.toneMappingExposure = 1.2;
   }
 
@@ -86,32 +85,21 @@ class CosmosApp {
 
     const renderPass = new RenderPass(this.scene, this.camera);
     this.composer.addPass(renderPass);
-
-    // Add UnrealBloomPass for that cinematic sci-fi glow
     const resolution = new THREE.Vector2(this.width, this.height);
     const bloomPass = new UnrealBloomPass(resolution, 1.5, 0.4, 0.85);
 
-    bloomPass.threshold = 0.6; // Higher threshold so diffuse planet surface doesn't bloom, but bright stars do
-    bloomPass.strength = 1.0; // Slightly reduced overall intensity
-    bloomPass.radius = 0.6; // Spread of the glow
+    bloomPass.threshold = 0.6;
+    bloomPass.strength = 1.0;
+    bloomPass.radius = 0.6;
 
     this.composer.addPass(bloomPass);
   }
 
   initObjects() {
-    // Deep background nebula clouds
     this.nebula = new Nebula(this.scene);
-
-    // Deep background stars (15,000 particles)
     this.starfield = new Starfield(this.scene, 15000);
-
-    // Main orbiting Earth-like planet (radius 40)
     this.planet = new Planet(this.scene, 40, new THREE.Vector3(80, 10, -120));
-
-    // Background comets system
     this.comets = new CometSystem(this.scene);
-
-    // Interactive mouse trailing particles
     this.mouseTrail = new MouseTrail(this.scene, this.camera);
   }
 
@@ -202,31 +190,146 @@ class CosmosApp {
     const motionTime = this.isCosmicMotionStarted
       ? rawTime - this.motionStartTime
       : 0;
-
-    // Update systems
     if (this.nebula) this.nebula.update(motionTime);
     if (this.starfield) this.starfield.update(motionTime);
     if (this.planet) this.planet.update(motionTime);
     if (this.comets) this.comets.update(motionTime);
     if (this.mouseTrail) this.mouseTrail.update();
-
-    // Use Composer instead of Renderer directly to apply Bloom
     this.composer.render();
   }
 }
-
-// Initialize application on load
 window.onload = () => {
   const app = new CosmosApp();
-
-  // Access Gate Logic
   const accessGate = document.getElementById("access-gate");
   const accessSubmit = document.getElementById("access-submit");
   const accessMsg = document.getElementById("access-msg");
   const daySelect = document.getElementById("dob-day");
   const monthSelect = document.getElementById("dob-month");
   const yearSelect = document.getElementById("dob-year");
+  const ACCESS_TICKET_KEY = "mb_gate_ticket_v1";
+  const ACCESS_TICKET_TTL_MS = 1000 * 60 * 45;
+  let failedAttempts = 0;
+  let nextAllowedAttemptAt = 0;
   let startIntroCountdown = () => {};
+
+  function deriveDigest(input) {
+    let h1 = 0x811c9dc5;
+    let h2 = 0x1b873593;
+
+    for (let i = 0; i < input.length; i++) {
+      const code = input.charCodeAt(i);
+      h1 ^= code;
+      h1 = Math.imul(h1, 0x01000193);
+      h2 ^= code + i;
+      h2 = Math.imul(h2, 0x85ebca6b);
+    }
+
+    const part1 = (h1 >>> 0).toString(16).padStart(8, "0");
+    const part2 = (h2 >>> 0).toString(16).padStart(8, "0");
+    return part1 + part2;
+  }
+
+  function decodeReferenceTuple() {
+    const encoded = [49, 55, 130, 66, 136, 65, 66, 69, 74];
+    const raw = encoded
+      .map((value, index) => String.fromCharCode(value - index * 3))
+      .join("");
+    const [day, month, year] = raw.split("|");
+    return { day, month, year };
+  }
+
+  function buildGateStamp(day, month, year) {
+    const d = Number.parseInt(day, 10);
+    const m = Number.parseInt(month, 10);
+    const y = Number.parseInt(year, 10);
+
+    if (!Number.isInteger(d) || !Number.isInteger(m) || !Number.isInteger(y)) {
+      return "";
+    }
+
+    const mapped = [
+      (d * 13 + m * 17 + y * 19) % 997,
+      (d * d + m * 23 + y) % 991,
+      ((y % 100) * d + m * 31) % 983,
+      ((y >> 1) + d * 29 + m * 7) % 977,
+    ];
+
+    const salt = ["ne", "bu", "la", "-", "ve", "il"].join("");
+    const pepper = ["ly", "ra", "-", "an", "ch", "or"].join("");
+    return deriveDigest(`${salt}:${mapped.join(".")}:${pepper}`);
+  }
+
+  function isCorrectDate(day, month, year) {
+    const ref = decodeReferenceTuple();
+    return (
+      buildGateStamp(day, month, year) ===
+      buildGateStamp(ref.day, ref.month, ref.year)
+    );
+  }
+
+  function buildTicketChecksum(rawToken, expiresAt) {
+    const agentHint = (navigator.userAgent || "").slice(0, 80);
+    const secret = ["co", "met", "-", "veil"].join("");
+    return deriveDigest(`${rawToken}:${expiresAt}:${agentHint}:${secret}`);
+  }
+
+  function writeAccessTicket() {
+    const issuedAt = Date.now();
+    const expiresAt = issuedAt + ACCESS_TICKET_TTL_MS;
+    const rawToken =
+      `${issuedAt.toString(36)}.` +
+      Math.random().toString(36).slice(2) +
+      Math.random().toString(36).slice(2);
+
+    const ticket = {
+      token: rawToken,
+      expiresAt,
+      checksum: buildTicketChecksum(rawToken, expiresAt),
+    };
+
+    sessionStorage.setItem(ACCESS_TICKET_KEY, JSON.stringify(ticket));
+    return ticket;
+  }
+
+  function hasValidAccessTicket() {
+    const raw = sessionStorage.getItem(ACCESS_TICKET_KEY);
+    if (!raw) return false;
+
+    try {
+      const ticket = JSON.parse(raw);
+      if (!ticket || typeof ticket !== "object") return false;
+      if (
+        typeof ticket.token !== "string" ||
+        typeof ticket.checksum !== "string" ||
+        typeof ticket.expiresAt !== "number"
+      ) {
+        return false;
+      }
+      if (Date.now() > ticket.expiresAt) return false;
+
+      const expectedChecksum = buildTicketChecksum(
+        ticket.token,
+        ticket.expiresAt,
+      );
+      return expectedChecksum === ticket.checksum;
+    } catch {
+      return false;
+    }
+  }
+
+  function clearAccessTicket() {
+    sessionStorage.removeItem(ACCESS_TICKET_KEY);
+  }
+
+  function revealGateWithAuth() {
+    accessGate.classList.add("granted");
+    setTimeout(() => startIntroCountdown(), 1000);
+  }
+
+  function relockGate() {
+    clearAccessTicket();
+    accessGate.classList.remove("granted");
+  }
 
   function initCustomSelect(selectEl) {
     if (!selectEl) return;
@@ -324,8 +427,38 @@ window.onload = () => {
   initCustomSelect(monthSelect);
   initCustomSelect(yearSelect);
 
+  if (accessGate) {
+    if (hasValidAccessTicket()) {
+      revealGateWithAuth();
+    } else {
+      relockGate();
+    }
+
+    const gateObserver = new MutationObserver(() => {
+      if (accessGate.classList.contains("granted") && !hasValidAccessTicket()) {
+        accessMsg.textContent = "Unauthorized access blocked.";
+        accessMsg.className = "error";
+        accessGate.classList.remove("granted");
+      }
+    });
+
+    gateObserver.observe(accessGate, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+  }
+
   if (accessSubmit) {
     accessSubmit.addEventListener("click", () => {
+      const now = Date.now();
+      if (now < nextAllowedAttemptAt) {
+        const waitMs = nextAllowedAttemptAt - now;
+        const waitSec = Math.max(1, Math.ceil(waitMs / 1000));
+        accessMsg.textContent = `Try again in ${waitSec}s.`;
+        accessMsg.className = "error";
+        return;
+      }
+
       const d = daySelect.value;
       const m = monthSelect.value;
       const y = yearSelect.value;
@@ -337,29 +470,31 @@ window.onload = () => {
         return;
       }
 
-      if (d === "14" && m === "9" && y === "2002") {
+      if (isCorrectDate(d, m, y)) {
         accessMsg.textContent = "Correct answer! Jak Mone Ache tomar!!";
         accessMsg.className = "success";
+        failedAttempts = 0;
+        nextAllowedAttemptAt = 0;
+        writeAccessTicket();
 
         setTimeout(() => {
-          accessGate.classList.add("granted");
-          // Start intro sequence only after the gate begins fading out.
-          setTimeout(() => startIntroCountdown(), 1000);
+          revealGateWithAuth();
         }, 1000);
       } else {
         accessMsg.textContent = "Tumi TANJILA NA !! Othoba Vule gecho :) ";
         accessMsg.className = "error";
-
-        // Remove class to retrigger animation later if needed
+        failedAttempts += 1;
+        const cooldownMs = Math.min(
+          6000,
+          500 * 2 ** Math.min(failedAttempts, 4),
+        );
+        nextAllowedAttemptAt = Date.now() + cooldownMs;
         setTimeout(() => accessMsg.classList.remove("error"), 500);
-        // Force reflow to restart animation on next click
         void accessMsg.offsetWidth;
         accessMsg.classList.add("error");
       }
     });
   }
-
-  // Intro Animation Logic
   const overlay = document.getElementById("intro-overlay");
   const instruction = document.getElementById("intro-instruction");
   const countdownEl = document.getElementById("countdown");
@@ -386,24 +521,18 @@ window.onload = () => {
         countdownEl.textContent = count;
       } else {
         clearInterval(interval);
-
-        // Countdown finished — smoothly collapse instruction & countdown, show the button
         instruction.style.opacity = "0";
         instruction.style.maxHeight = "0";
         instruction.style.marginBottom = "0";
         countdownEl.style.opacity = "0";
         countdownEl.style.maxHeight = "0";
         countdownEl.style.marginBottom = "0";
-
-        // Reveal the candle prompt and blow-candle button
         candlePrompt.classList.add("visible");
         blowBtn.classList.add("visible");
       }
     }, 1000);
   };
-
-  // Run intro countdown immediately only if access gate is not active.
-  if (!accessGate || accessGate.classList.contains("granted")) {
+  if (!accessGate || hasValidAccessTicket()) {
     startIntroCountdown();
   }
 
@@ -441,16 +570,12 @@ window.onload = () => {
   } else if (typeof mobileBirthdayMedia.addListener === "function") {
     mobileBirthdayMedia.addListener(formatBirthdayTextForViewport);
   }
-
-  // Called after the user clicks "Blow the Candle"
   function triggerBlowSequence() {
     app.startCosmicMotion();
 
     blowBtn.style.display = "none";
     candlePrompt.style.transition = "opacity 0.4s";
     candlePrompt.style.opacity = "0";
-
-    // Play audio — allowed here because it's inside a user-gesture handler
     if (bgm) {
       bgm.volume = 0;
       bgm.loop = true;
@@ -471,29 +596,17 @@ window.onload = () => {
           console.log("Audio playback blocked by browser policies:", err),
         );
     }
-
-    // Blow the candle
     candleWrapper.classList.add("hidden");
-
-    // Fade out overlay background to reveal the planet behind the text
     overlay.classList.add("fade-bg");
-    overlay.style.backgroundColor = "transparent"; // Keep in case it was used
-
-    // Show Happy Birthday text
+    overlay.style.backgroundColor = "transparent";
     birthdayText.classList.add("show");
-
-    // Trigger constellation after a short pause
     setTimeout(() => {
       if (app.starfield) {
         app.starfield.formConstellation();
       }
     }, 1500);
-
-    // Fade out the whole overlay
     setTimeout(() => {
       overlay.classList.add("fade-out");
-
-      // Reveal the scrollable story layer once the overlay has faded (~1.5 s transition)
       setTimeout(() => {
         const scrollWrapper = document.getElementById("scroll-wrapper");
         if (scrollWrapper) scrollWrapper.classList.add("visible");
@@ -502,8 +615,6 @@ window.onload = () => {
   }
 
   blowBtn.addEventListener("click", triggerBlowSequence);
-
-  // ── Gift Box Interaction ───────────────────────────────────────────────────
   const giftBox = document.querySelector(".gift-box");
   const giftBoxWrapper = document.querySelector(".gift-box-wrapper");
   const giftMsg = document.querySelector(".gift-message");
@@ -522,16 +633,12 @@ window.onload = () => {
       }
 
       if (heartBurst) heartBurst.classList.add("active");
-
-      // Once the lid has flipped (~700 ms), collapse the box and reveal the
-      // message simultaneously so the text appears in the envelope's place
       setTimeout(() => {
         if (giftBoxWrapper) giftBoxWrapper.classList.add("collapse");
         if (giftMsg) {
           giftMsg.classList.add("show");
           giftMsg.setAttribute("aria-hidden", "false");
         }
-        // After the gift message is visible, reveal the love letter section
         setTimeout(revealLetterSection, 1500);
       }, 800);
     }
@@ -544,9 +651,6 @@ window.onload = () => {
       }
     });
   }
-  // ──────────────────────────────────────────────────────────────────────────
-
-  // ── Love Letter Section ──────────────────────────────────────────────────
   const letterSection = document.getElementById("section-letter");
   const letterCard = document.getElementById("letter-card");
   const letterContentWrapper = document.getElementById(
@@ -556,8 +660,6 @@ window.onload = () => {
   const letterTiltContainer = document.getElementById("letter-tilt-container");
   const scrollWrapper = document.getElementById("scroll-wrapper");
   let letterAnimated = false;
-
-  // Wrap every word inside letter text elements with a span for animation
   function wrapLetterWords() {
     if (!letterCard) return;
     const els = letterCard.querySelectorAll(
@@ -570,8 +672,6 @@ window.onload = () => {
         .join("");
     });
   }
-
-  // Animate words one-by-one
   function animateLetterText() {
     if (!letterCard) return Promise.resolve();
     const words = letterCard.querySelectorAll(".letter-word");
@@ -593,8 +693,6 @@ window.onload = () => {
       const viewportBottom =
         letterContentWrapper.scrollTop + letterContentWrapper.clientHeight;
       const triggerBottom = viewportBottom - bottomBufferPx;
-
-      // Start scrolling as soon as the revealed text reaches the last visible line.
       if (wordBottom > triggerBottom) {
         const nextScrollTop =
           wordBottom - (letterContentWrapper.clientHeight - bottomBufferPx);
@@ -699,7 +797,6 @@ window.onload = () => {
 
       const tick = (now) => {
         const progress = Math.min(1, (now - startTime) / durationMs);
-        // Ease-out for a cleaner finish at the end of the letter.
         const eased = 1 - Math.pow(1 - progress, 2);
         letterContentWrapper.scrollTop = startTop + remainingDistance * eased;
 
@@ -721,8 +818,6 @@ window.onload = () => {
   function revealPostLetterSections() {
     const countdownSection = document.getElementById("section-countdown");
     if (countdownSection) countdownSection.classList.add("revealed");
-
-    // Reveal Our Story section 2 seconds after countdown is revealed
     setTimeout(() => {
       const storySection = document.getElementById("section-story");
       if (storySection) {
@@ -734,9 +829,6 @@ window.onload = () => {
           if (gallerySection) {
             gallerySection.classList.add("revealed");
             initGallery();
-
-            // Reveal the wish section only after gallery reveal finishes,
-            // then wait an additional 2 seconds.
             const galleryRevealDurationMs = 1200;
             const wishRevealDelayMs = 2000;
             setTimeout(() => {
@@ -766,19 +858,11 @@ window.onload = () => {
     letterCard.style.maxHeight = Math.floor(viewportCap) + "px";
     letterContentWrapper.style.maxHeight = contentHeight + "px";
   }
-
-  // Prepare word spans immediately
   wrapLetterWords();
-
-  // Premium Feature: Wax Seal Interaction & Reveal
   function handleWaxSealClick() {
     if (letterAnimated) return;
     letterAnimated = true;
-
-    // Break seal visually
     waxSealBtn.classList.add("broken");
-
-    // Unlock card and trigger text reveals via JS typewriter
     setTimeout(() => {
       letterCard.classList.remove("locked");
       applyLetterViewportLock();
@@ -795,11 +879,8 @@ window.onload = () => {
   if (waxSealBtn) {
     waxSealBtn.addEventListener("click", handleWaxSealClick);
   }
-
-  // Premium Feature 5: 3D Tilt Effect on Hover
   if (letterTiltContainer && letterCard) {
     letterTiltContainer.addEventListener("mousemove", (e) => {
-      // Don't tilt if locked (optional, but let's keep it cool anyway)
       const rect = letterTiltContainer.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
@@ -807,7 +888,7 @@ window.onload = () => {
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
 
-      const rotateX = ((y - centerY) / centerY) * -4; // Max 4 degrees
+      const rotateX = ((y - centerY) / centerY) * -4;
       const rotateY = ((x - centerX) / centerX) * 4;
 
       letterCard.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
@@ -817,17 +898,12 @@ window.onload = () => {
       letterCard.style.transform = `perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)`;
     });
   }
-
-  // Reveal the letter section setup on scroll
   function revealLetterSection() {
     if (!letterSection) return;
     letterSection.classList.add("revealed");
-    // No scroll-triggered auto opening anymore, user must click seal
     const scrollHint = document.getElementById("letter-scroll-hint");
     if (scrollHint) scrollHint.classList.add("visible");
   }
-
-  // Golden sparkle trail on letter card hover
   let lastSparkle = 0;
   if (letterCard) {
     letterCard.addEventListener("mousemove", (e) => {
@@ -843,12 +919,9 @@ window.onload = () => {
       setTimeout(() => sparkle.remove(), 800);
     });
   }
-  // ──────────────────────────────────────────────────────────────────────────
-
-  // ── Countdown / Relationship Timer ───────────────────────────────────────
   (function initCountdown() {
     const startDate = new Date(2018, 0, 24, 0, 0, 0);
-    const CIRCUMFERENCE = 2 * Math.PI * 54; // r=54 in the SVG
+    const CIRCUMFERENCE = 2 * Math.PI * 54;
 
     const ids = [
       "cd-years",
@@ -862,15 +935,11 @@ window.onload = () => {
     ids.forEach((id) => {
       els[id] = document.getElementById(id);
     });
-
-    // Bail out if countdown section is missing
     if (!els["cd-years"]) return;
 
     const cards = document.querySelectorAll(".countdown-card");
     const particleContainer = document.getElementById("countdown-particles");
     let prevValues = {};
-
-    // ── FEATURE 2: Update progress ring dashoffset ─────────────────
     function setRingProgress(card, value, max) {
       const ring = card.querySelector(".progress-ring__fill");
       if (!ring) return;
@@ -879,8 +948,6 @@ window.onload = () => {
       ring.style.strokeDasharray = CIRCUMFERENCE;
       ring.style.strokeDashoffset = offset;
     }
-
-    // ── FEATURE 3: Cosmic particle burst ───────────────────────────
     function emitParticles(card) {
       if (!particleContainer) return;
       const rect = card.getBoundingClientRect();
@@ -904,8 +971,6 @@ window.onload = () => {
         p.addEventListener("animationend", () => p.remove());
       }
     }
-
-    // ── Core update ────────────────────────────────────────────────
     function update() {
       const now = new Date();
       let years = now.getFullYear() - startDate.getFullYear();
@@ -949,8 +1014,6 @@ window.onload = () => {
         "cd-minutes": minutes,
         "cd-seconds": seconds,
       };
-
-      // Update each value element
       Object.entries(vals).forEach(([id, val]) => {
         const el = els[id];
         if (!el) return;
@@ -961,14 +1024,11 @@ window.onload = () => {
 
         if (prevValues[id] !== val) {
           el.textContent = display;
-          // FEATURE 1: Digit roller animation
           el.classList.remove("tick");
-          void el.offsetWidth; // force reflow
+          void el.offsetWidth;
           el.classList.add("tick");
         }
       });
-
-      // Update progress rings (FEATURE 2)
       cards.forEach((card) => {
         const unit = card.dataset.unit;
         const max = parseInt(card.dataset.max, 10);
@@ -977,8 +1037,6 @@ window.onload = () => {
           setRingProgress(card, vals[idKey], max);
         }
       });
-
-      // FEATURE 3: Particle burst on second change
       const secondsCard = document.querySelector(
         '.countdown-card[data-unit="seconds"]',
       );
@@ -988,7 +1046,6 @@ window.onload = () => {
         prevValues["cd-seconds"] !== vals["cd-seconds"]
       ) {
         emitParticles(secondsCard);
-        // Also pulse the seconds card
         secondsCard.classList.remove("pulse");
         void secondsCard.offsetWidth;
         secondsCard.classList.add("pulse");
@@ -999,8 +1056,6 @@ window.onload = () => {
 
     update();
     setInterval(update, 1000);
-
-    // ── FEATURE 5: Interactive 3D Tilt ──────────────────────────────
     cards.forEach((card) => {
       card.addEventListener("mouseenter", () =>
         card.classList.add("tilt-active"),
@@ -1026,15 +1081,10 @@ window.onload = () => {
       });
     });
   })();
-  // ──────────────────────────────────────────────────────────────────────────
-
-  // ── Our Story Section ─────────────────────────────────────────────────────
   function initStory() {
     const scrollWrapper = document.getElementById("scroll-wrapper");
     const storyItems = document.querySelectorAll(".story-item");
     const storyCards = document.querySelectorAll(".story-card");
-
-    // ── FEATURE 2: Typewriter animation for dates ────────────────────────────
     function runTypewriter(dateEl) {
       if (!dateEl || dateEl.dataset.twDone) return;
       dateEl.dataset.twDone = "1";
@@ -1052,17 +1102,14 @@ window.onload = () => {
         }
       }, speed);
     }
-
-    // ── FEATURE 5: Entrance animation via IntersectionObserver ───────────────
     const entranceObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const item = entry.target;
             item.classList.add("animate-in");
-            // Kick off typewriter for the date inside this item
             const dateEl = item.querySelector(".story-date[data-tw]");
-            const delay = 420; // wait for card to slide in
+            const delay = 420;
             setTimeout(() => runTypewriter(dateEl), delay);
             entranceObserver.unobserve(item);
           }
@@ -1072,8 +1119,6 @@ window.onload = () => {
     );
 
     storyItems.forEach((item) => entranceObserver.observe(item));
-
-    // ── FEATURE 1 (extended): Cursor sparkle trail on story cards ────────────
     let lastStorySparkle = 0;
     storyCards.forEach((card) => {
       const inner = card.querySelector(".story-card-inner");
@@ -1095,31 +1140,24 @@ window.onload = () => {
         inner.appendChild(sp);
         setTimeout(() => sp.remove(), 800);
       });
-
-      // ── FEATURE 1: Keyboard / touch flip toggle ──────────────────────────
       card.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           card.classList.toggle("flipped");
         }
       });
-
-      // Touch devices: tap to flip instead of hover
       card.addEventListener("click", () => {
-        // Only activate flip-on-click when hover is not available
         if (window.matchMedia("(hover: none)").matches) {
           card.classList.toggle("flipped");
         }
       });
     });
-
-    // ── FEATURE 5: Floating ambient particles emitted from each card ─────────
     const ptclColors = ["#d4af37", "#fff2cc", "#b76e79", "#ffd1dc", "#c8a0e0"];
 
     function emitCardParticles(ptclContainer) {
       if (!ptclContainer) return;
       const rect = ptclContainer.getBoundingClientRect();
-      if (rect.width === 0) return; // not visible yet
+      if (rect.width === 0) return;
       for (let i = 0; i < 3; i++) {
         const dot = document.createElement("div");
         dot.className = "story-ptcl-dot";
@@ -1138,12 +1176,7 @@ window.onload = () => {
         setTimeout(() => dot.remove(), 2900);
       }
     }
-
-    // Track active particle intervals per card so we can start/stop them
     const cardParticleIntervals = new WeakMap();
-
-    // Start the particle emitters for each card (staggered so they don't all
-    // fire at the same moment and feels organic), but only while visible.
     const storyParticleCards = document.querySelectorAll(".story-item-ptcl");
 
     if (storyParticleCards.length > 0 && "IntersectionObserver" in window) {
@@ -1157,12 +1190,9 @@ window.onload = () => {
           const baseInterval = 2200 + idx * 300;
 
           if (entry.isIntersecting) {
-            // Already has an active interval; do nothing
             if (cardParticleIntervals.has(ptcl)) {
               return;
             }
-
-            // Stagger the start slightly as in the original code
             const startDelay = 600 + idx * 200;
             const startTimeout = setTimeout(() => {
               emitCardParticles(ptcl);
@@ -1172,11 +1202,8 @@ window.onload = () => {
               );
               cardParticleIntervals.set(ptcl, { intervalId });
             }, startDelay);
-
-            // Temporarily store timeout handle so we can cancel if it goes off-screen quickly
             cardParticleIntervals.set(ptcl, { timeoutId: startTimeout });
           } else {
-            // No longer visible: clear any pending timeout and active interval
             const handles = cardParticleIntervals.get(ptcl);
             if (handles) {
               if (handles.timeoutId) {
@@ -1193,7 +1220,6 @@ window.onload = () => {
 
       storyParticleCards.forEach((ptcl) => observer.observe(ptcl));
     } else {
-      // Fallback: preserve original always-on behavior if IntersectionObserver is unavailable
       storyParticleCards.forEach((ptcl, idx) => {
         const baseInterval = 2200 + idx * 300;
         setTimeout(
@@ -1209,9 +1235,6 @@ window.onload = () => {
         );
       });
     }
-
-    // ── Scroll-driven timeline line fill (bonus on top of CSS animation) ─────
-    // Supplements the CSS animation with exact scroll position tracking
     const timeline = document.getElementById("story-timeline");
     const lineFill = document.getElementById("story-line-fill");
 
@@ -1219,14 +1242,10 @@ window.onload = () => {
       const updateLine = () => {
         const tlRect = timeline.getBoundingClientRect();
         const wrapRect = scrollWrapper.getBoundingClientRect();
-        // How far through the timeline has the viewport centre travelled
         const vpCentre = wrapRect.top + wrapRect.height / 2;
         const passed = vpCentre - tlRect.top;
         const pct = Math.max(0, Math.min(100, (passed / tlRect.height) * 100));
-        // Only override once the CSS animation has finished (~5.3s) so they
-        // don't fight; we detect this by checking if animation is done
         if (!lineFill.dataset.cssAnimDone) {
-          // Let CSS animation run; mark done after its duration + delay
           setTimeout(() => {
             lineFill.dataset.cssAnimDone = "1";
           }, 5400);
@@ -1239,9 +1258,6 @@ window.onload = () => {
       updateLine();
     }
   }
-  // ── End Our Story Section ──────────────────────────────────────────────────
-
-  // ── Our Gallery Section ────────────────────────────────────────────────────
   function initGallery() {
     const section = document.getElementById("section-gallery");
     const grid = document.getElementById("gallery-grid");
@@ -1256,7 +1272,7 @@ window.onload = () => {
         text: "The night felt quieter, but my heart felt louder with you.",
         r: -8,
         x: -15,
-        y: -10, // Feature 1: Scattered rotation
+        y: -10,
       },
       {
         src: "images/pic1.jpg",
@@ -1317,19 +1333,19 @@ window.onload = () => {
           ';" role="listitem" data-gallery-idx="' +
           idx +
           '">' +
-          '<div class="gallery-tape"></div>' + // Feature 2: Washi Tape Element
+          '<div class="gallery-tape"></div>' +
           '<button class="gallery-card" type="button" aria-label="Open photo ' +
           (idx + 1) +
           ' in viewer">' +
           '<div class="gallery-figure">' +
-          '<div class="gallery-glare"></div>' + // Feature 3: Specular Glare/Reflection
+          '<div class="gallery-glare"></div>' +
           '<img class="gallery-image" src="' +
           item.src +
           '" alt="' +
           item.alt +
           '" loading="lazy" decoding="async" fetchpriority="low" />' +
           "</div>" +
-          '<div class="gallery-caption">' + // Showing caption below image on card
+          '<div class="gallery-caption">' +
           '<h3 class="gallery-item-title">' +
           item.title +
           "</h3>" +
@@ -1341,8 +1357,6 @@ window.onload = () => {
           "</article>",
       )
       .join("");
-
-    // Feature 5: Interactive 3D tilt and Parallax on hover across the gallery container
     section.addEventListener("mousemove", (e) => {
       const rect = section.getBoundingClientRect();
       const x = e.clientX - rect.left - rect.width / 2;
@@ -1350,7 +1364,7 @@ window.onload = () => {
 
       const items = grid.querySelectorAll(".gallery-item");
       items.forEach((item, index) => {
-        const factor = index % 2 === 0 ? 0.02 : -0.03; // Different speeds for different depths
+        const factor = index % 2 === 0 ? 0.02 : -0.03;
         item.style.transform = `translate(${x * factor}px, ${y * factor}px)`;
       });
     });
@@ -1358,7 +1372,7 @@ window.onload = () => {
     section.addEventListener("mouseleave", () => {
       const items = grid.querySelectorAll(".gallery-item");
       items.forEach((item) => {
-        item.style.transform = `translate(0px, 0px)`; // Reset
+        item.style.transform = `translate(0px, 0px)`;
       });
     });
 
@@ -1568,9 +1582,7 @@ window.onload = () => {
     });
 
     backdrop?.addEventListener("click", closeLightbox);
-    // Allow clicking the panel (outside the image) to close as well
     panel.addEventListener("click", (e) => {
-      // if click is exactly on panel or figure, but not the image/caption
       if (
         e.target === panel ||
         e.target.classList.contains("gallery-lb-figure")
@@ -1614,9 +1626,6 @@ window.onload = () => {
       });
     }
   }
-  // ── End Our Gallery Section ────────────────────────────────────────────────
-
-  // ── Make a Wish & Finale Section ───────────────────────────────────────────
   const wishBtn = document.getElementById("wish-btn");
   const wishInputContainer = document.querySelector(".wish-container");
   const wishInput = document.getElementById("wish-input");
@@ -1652,12 +1661,12 @@ window.onload = () => {
 
   const burstStarPool = [];
   const burstColors = [
-    "#ffffff", // white
-    "#ffd700", // gold
-    "#ff69b4", // pink
-    "#00ffff", // cyan
-    "#9370db", // purple
-    "#ff4500", // orange
+    "#ffffff",
+    "#ffd700",
+    "#ff69b4",
+    "#00ffff",
+    "#9370db",
+    "#ff4500",
   ];
 
   function primeBurstPool() {
@@ -1712,8 +1721,6 @@ window.onload = () => {
 
       const delta = ts - lastTs;
       lastTs = ts;
-
-      // Ignore the first frame; detect sustained pacing issues afterwards.
       if (samples > 0 && delta > 22) {
         longFrames += 1;
       }
@@ -1756,7 +1763,6 @@ window.onload = () => {
 
     const appendBatch = (startIndex) => {
       if (!reducedApplied && frameMonitor.shouldReduce()) {
-        // Dynamic downshift for low-end devices if pacing degrades.
         runtimeTotalStars = Math.max(
           Math.floor(burstProfile.totalStars * 0.72),
           80,
@@ -1808,57 +1814,40 @@ window.onload = () => {
     let wishSent = false;
 
     wishBtn.addEventListener("click", () => {
-      // It's just visual, but let's make sure she typed something to make her feel it matters
       if (wishInput.value.trim() === "") {
         wishInput.focus();
-        // Shake animation for empty input could go here
         return;
       }
 
       if (wishSent) return;
       wishSent = true;
-
-      // Transition the box out
       wishInputContainer.classList.add("sent");
       const wishHeader = document.querySelector(".wish-header");
       const wishCosmicBg = document.querySelector(".wish-cosmic-bg");
-
-      // We removed the inline opacity styles and added class lists instead
       if (wishHeader) wishHeader.classList.add("sent");
       if (wishCosmicBg) wishCosmicBg.classList.add("sent");
 
       const inputWrapper = document.getElementById("wish-input-wrapper");
       if (inputWrapper) inputWrapper.classList.add("sent");
-
-      // Grand Meteor Shower Burst Effect in DOM
       const burstContainer = document.getElementById("wish-star-burst");
       if (burstContainer) {
         launchWishBurst(burstContainer);
       }
-
-      // Trigger the main cosmic scene wish comet once (prevents the giant thick line issue)
       if (app.comets && typeof app.comets.spawnWishComet === "function") {
         app.comets.spawnWishComet();
       } else {
         console.log("Wish sent to the stars!");
       }
-
-      // Reveal finale section exactly where the box was
       if (finaleSection) {
         setTimeout(() => {
           finaleSection.style.display = "flex";
-          // Small delay to allow display flex to apply before adding class
           setTimeout(() => {
             finaleSection.classList.add("active");
-            // Make footer accessible after finale starts
             const footer = finaleSection.querySelector(".story-footer");
             if (footer) footer.setAttribute("aria-hidden", "false");
           }, 50);
-        }, 1200); // Trigger just as the box finishes imploding
+        }, 1200);
       }
     });
-
-    // We no longer need the IntersectionObserver for finale text, because we
-    // manually trigger it visually upon clicking the wish button now.
   }
 };

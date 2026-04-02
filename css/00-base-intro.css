@@ -19,8 +19,8 @@ html {
   padding: 0;
   width: 100vw;
   height: 100vh;
-  overflow: hidden; /* Prevent scrolling */
-  background-color: #030308; /* Deep space fallback color */
+  overflow: hidden; 
+  background-color: #030308; 
   font-family: sans-serif;
 }
 
@@ -34,7 +34,7 @@ html {
   z-index: 1;
 }
 
-/* Intro Overlay Styles */
+
 #intro-overlay {
   position: fixed;
   inset: 0;
@@ -93,7 +93,7 @@ html {
     margin 0.5s ease;
 }
 
-/* Candle Styles */
+
 .candle-container {
   position: relative;
   width: 60px;
@@ -120,7 +120,7 @@ html {
     #ff99cc 10px,
     #ffffff 10px,
     #ffffff 20px
-  ); /* Pink and white stripes */
+  ); 
   border: 2px solid #000;
   border-radius: 5px;
 }
@@ -264,7 +264,7 @@ html {
   font-family: "Great Vibes", cursive;
   font-size: 4.5rem;
   line-height: 1.2;
-  color: #fff2cc; /* Soft glowing gold/white */
+  color: #fff2cc; 
   text-shadow:
     0 0 10px #ffaa00,
     0 0 20px #ffaa00,
