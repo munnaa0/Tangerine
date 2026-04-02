@@ -5,6 +5,7 @@ export class CometSystem {
     this.scene = scene;
     this.comets = [];
     this.maxComets = 3;
+    this.maxTailPoints = 30;
 
     // Setup texture for comet head
     const canvas = document.createElement("canvas");
@@ -96,7 +97,10 @@ export class CometSystem {
       head: new THREE.Sprite(this.material),
       velocity: new THREE.Vector3(velX, velY, velZ),
       life: initialLife, // Fades out
-      tailPositions: [], // Store recent positions for the tail
+      tailIndex: 0,
+      tailCount: 0,
+      tailHistory: new Float32Array(this.maxTailPoints * 3),
+      tailRenderBuffer: new Float32Array(this.maxTailPoints * 3),
       tailGeometry: new THREE.BufferGeometry(),
       tailMaterial: new THREE.LineBasicMaterial({
         color: tailColor,
@@ -115,6 +119,13 @@ export class CometSystem {
       comet.head.material = comet.head.material.clone();
       comet.head.material.color.setHex(0xffaadd);
     }
+
+    comet.tailGeometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(comet.tailRenderBuffer, 3),
+    );
+    comet.tailGeometry.attributes.position.setUsage(THREE.DynamicDrawUsage);
+    comet.tailGeometry.setDrawRange(0, 0);
 
     // Initialize tail line
     comet.tailLine = new THREE.Line(comet.tailGeometry, comet.tailMaterial);
@@ -143,24 +154,28 @@ export class CometSystem {
       // Move head
       comet.head.position.add(comet.velocity);
 
-      // Record position for tail
-      comet.tailPositions.push(comet.head.position.clone());
-      if (comet.tailPositions.length > 30) {
-        comet.tailPositions.shift(); // Keep tail length limited
-      }
+      // Record position in a ring buffer to avoid allocations.
+      const writeIndex = comet.tailIndex * 3;
+      comet.tailHistory[writeIndex] = comet.head.position.x;
+      comet.tailHistory[writeIndex + 1] = comet.head.position.y;
+      comet.tailHistory[writeIndex + 2] = comet.head.position.z;
+      comet.tailIndex = (comet.tailIndex + 1) % this.maxTailPoints;
+      comet.tailCount = Math.min(comet.tailCount + 1, this.maxTailPoints);
 
-      // Update tail geometry
-      if (comet.tailPositions.length > 1) {
-        const positions = new Float32Array(comet.tailPositions.length * 3);
-        for (let j = 0; j < comet.tailPositions.length; j++) {
-          positions[j * 3] = comet.tailPositions[j].x;
-          positions[j * 3 + 1] = comet.tailPositions[j].y;
-          positions[j * 3 + 2] = comet.tailPositions[j].z;
+      if (comet.tailCount > 1) {
+        const tailAttr = comet.tailGeometry.attributes.position;
+        for (let j = 0; j < comet.tailCount; j++) {
+          const src =
+            ((comet.tailIndex - comet.tailCount + j + this.maxTailPoints) %
+              this.maxTailPoints) *
+            3;
+          const dst = j * 3;
+          tailAttr.array[dst] = comet.tailHistory[src];
+          tailAttr.array[dst + 1] = comet.tailHistory[src + 1];
+          tailAttr.array[dst + 2] = comet.tailHistory[src + 2];
         }
-        comet.tailGeometry.setAttribute(
-          "position",
-          new THREE.BufferAttribute(positions, 3),
-        );
+        comet.tailGeometry.setDrawRange(0, comet.tailCount);
+        tailAttr.needsUpdate = true;
       }
 
       // Fade out
