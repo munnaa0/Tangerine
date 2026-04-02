@@ -695,7 +695,7 @@ window.onload = () => {
         const scrollWrapper = document.getElementById("scroll-wrapper");
         if (scrollWrapper) scrollWrapper.classList.add("visible");
       }, 1600);
-    }, 4500);
+    }, 4000);
   }
 
   blowBtn.addEventListener("click", triggerBlowSequence);
@@ -1466,55 +1466,55 @@ window.onload = () => {
 
     const items = [
       {
-        src: "images/pic1.jpg",
+        src: "images/img3.jpeg",
         alt: "A sweet memory of us together",
-        title: "Soft Beginnings",
-        text: "The night felt quieter, but my heart felt louder with you.",
+        title: "Chotto Dingulo",
+        text: "Tomar chotobelar ekta pic diye dilam. Jodio khub beshi nei. Etai amar kache onk valo legeche.",
         r: -8,
         x: -15,
         y: -10,
       },
       {
-        src: "images/pic1.jpg",
+        src: "images/pic5.jpg",
         alt: "A precious smile from our journey",
-        title: "Held In Light",
-        text: "You smiled once, and the whole evening turned golden.",
+        title: "Amar favourite pic",
+        text: "Onk lomba somoy dhore amar favourite chobi chilo eta. Kothao dawat khete giye tulechile. Ami dekhe eto boro crush kheychilam je ami eta amar button phone er wallpaper kore rekhechilam.",
         r: 6,
         x: 10,
         y: 15,
       },
       {
-        src: "images/pic1.jpg",
+        src: "images/pic6.jpg",
         alt: "A memory where we looked happiest",
-        title: "Near, Even Far",
-        text: "Distance kept our hands apart, never our souls.",
+        title: "Brightest smile",
+        text: "Etao amar onk favourite ekta pic. Tomar hasi tai amar kache onk beshi pochonder. Just etar jonnoi eto kosto kora. Jodio hoyto ulta e hobe. Ei pic ta eto valo legechilo je etar 4 ta edit kora pic ache amar kace.",
         r: -4,
         x: 5,
         y: 30,
       },
       {
-        src: "images/pic1.jpg",
+        src: "images/pic7.jpg",
         alt: "A shared moment from our love story",
-        title: "Quiet Magic",
-        text: "In the smallest moments, you always feel like home.",
+        title: "Master Tanjila",
+        text: "Dekhe ekdom teacher teacher lage. Future e teacher hote paro. Kintu tumi teacher hole student der kopal e dukkho ache. Tomar rag uthle dekhba student der emon obostha korba cintai korte pari na.. Heeeh",
         r: 7,
         x: -10,
         y: 10,
       },
       {
-        src: "images/pic1.jpg",
-        alt: "A warm photo from one of our beautiful days",
-        title: "Golden Hour Us",
-        text: "Time slows down whenever your eyes find mine.",
+        src: "images/collage.jpg",
+        alt: "A precious smile from our journey",
+        title: "Janina ki korci",
+        text: "Gotokal theke tana bug fix notun jinis add soho koto kicu korchi. Akhon ei gallery section e notun kore cinta kore add korar moto poristiti e nei. Tai eta add korlam. Eta hocche jei nebula pichone dekhco setar jonmo theke final rup e asar golpo. 1st e oi nil alo chilo just. pore prithibir texture diye dekhlam valo lage na. Pore are 2 ta color diye finally pink ta rakhchi.",
         r: -12,
         x: 20,
         y: -5,
       },
       {
-        src: "images/pic1.jpg",
+        src: "images/img4.png",
         alt: "Another chapter of our shared memories",
-        title: "Still Choosing You",
-        text: "Every season changed, but my choice stayed the same.",
+        title: "A gift for you",
+        text: "FIrst e gift Section emon chilo. Design valo lageni. ONK change korci even tomakeo jigges korci. Ekta msg diye ar reply dawni tai msg delete kore diyechi. Sesh porjonto khub kharap legechilo tai okhane ar ami design korte na pere ekta gif bosiye diyechi jeta ekhon dekhte paccho.",
         r: 5,
         x: 0,
         y: -20,
