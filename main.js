@@ -1843,7 +1843,6 @@ window.onload = () => {
       if (wishSent) return;
       wishSent = true;
 
-      // Fire-and-forget submit keeps the existing animation flow instant.
       void submitWishToGoogleForm(wishMessage);
 
       wishInputContainer.classList.add("sent");
