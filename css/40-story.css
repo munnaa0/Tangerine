@@ -817,6 +817,19 @@
   margin: 0;
   background: transparent;
   border: none;
+  opacity: 0;
+  transform: scale(0.92);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-delay: 0s;
+}
+
+.story-card:hover .story-cb-gif-wrap,
+.story-card.flipped .story-cb-gif-wrap {
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 0.2s;
 }
 
 .story-cb-gif {
@@ -838,12 +851,144 @@
   color: rgba(255, 209, 220, 0.92);
   margin: 0;
   line-height: 1.45;
-  max-height: 16.5rem;
-  overflow-y: auto;
-  padding-right: 0.2rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+  align-self: stretch;
+  padding-right: 0;
   text-shadow:
     0 0 10px rgba(183, 110, 121, 0.45),
     0 1px 4px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transform: translateY(15px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-delay: 0s;
+}
+
+.story-cb-msg-glitch {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  color: rgba(255, 209, 220, 0.34);
+  letter-spacing: 0.02em;
+  filter: blur(1.75px) contrast(1.25);
+  text-shadow:
+    -0.12em 0 rgba(255, 76, 144, 0.82),
+    0.12em 0 rgba(40, 236, 255, 0.82),
+    0 0 7px rgba(255, 209, 220, 0.5);
+  animation:
+    storyWordMaskJitter 95ms steps(2, end) infinite,
+    storyWordMaskFlicker 1.25s linear infinite;
+}
+
+.story-cb-msg-glitch::before,
+.story-cb-msg-glitch::after {
+  content: attr(data-glitch);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  white-space: normal;
+  word-break: break-word;
+  line-height: inherit;
+  color: rgba(255, 209, 220, 0.38);
+  filter: blur(0.7px);
+}
+
+.story-cb-msg-glitch::before {
+  transform: translateX(-2.4px);
+  clip-path: inset(0 0 50% 0);
+  text-shadow: -2.4px 0 rgba(255, 56, 126, 0.95);
+  animation: storyWordMaskSliceA 320ms steps(2, end) infinite;
+}
+
+.story-cb-msg-glitch::after {
+  transform: translateX(2.4px);
+  clip-path: inset(50% 0 0 0);
+  text-shadow: 2.4px 0 rgba(0, 228, 255, 0.98);
+  animation: storyWordMaskSliceB 350ms steps(2, end) infinite;
+}
+
+@keyframes storyWordMaskJitter {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-1.6px, 0.95px);
+  }
+  50% {
+    transform: translate(1.9px, -1.2px);
+  }
+  75% {
+    transform: translate(-1.8px, 0.4px);
+  }
+  100% {
+    transform: translate(1.5px, 0.9px);
+  }
+}
+
+@keyframes storyWordMaskFlicker {
+  0%,
+  100% {
+    opacity: 0.66;
+    filter: blur(1.6px);
+  }
+  40% {
+    opacity: 0.82;
+    filter: blur(2px);
+  }
+  75% {
+    opacity: 0.54;
+    filter: blur(2.35px);
+  }
+}
+
+@keyframes storyWordMaskSliceA {
+  0% {
+    clip-path: inset(0 0 63% 0);
+  }
+  50% {
+    clip-path: inset(27% 0 26% 0);
+  }
+  100% {
+    clip-path: inset(12% 0 42% 0);
+  }
+}
+
+@keyframes storyWordMaskSliceB {
+  0% {
+    clip-path: inset(60% 0 0 0);
+  }
+  50% {
+    clip-path: inset(40% 0 10% 0);
+  }
+  100% {
+    clip-path: inset(70% 0 0 0);
+  }
+}
+
+.story-card:hover .story-cb-msg,
+.story-card.flipped .story-cb-msg {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.35s;
+  animation: textFloatGlow 3s ease-in-out infinite 0.8s;
+}
+
+@keyframes textFloatGlow {
+  0%,
+  100% {
+    text-shadow:
+      0 0 10px rgba(183, 110, 121, 0.45),
+      0 1px 4px rgba(0, 0, 0, 0.35);
+  }
+  50% {
+    text-shadow:
+      0 0 15px rgba(255, 209, 220, 0.6),
+      0 2px 8px rgba(0, 0, 0, 0.4);
+  }
 }
 
 .story-item-ptcl {
@@ -1135,7 +1280,7 @@
   }
 
   .story-cb-msg {
-    max-height: 13.5rem;
+    max-height: none;
   }
 
   .story-card-photo {

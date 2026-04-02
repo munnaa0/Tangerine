@@ -507,6 +507,106 @@ window.onload = () => {
     ? birthdayText.textContent.trim()
     : "";
   let introCountdownStarted = false;
+  const BGM_BASE_VOLUME = 0.5;
+  const BGM_DUCKED_VOLUME = 0.14;
+  let bgmVolumeTweenFrame = 0;
+  let bgmRetryArmed = false;
+
+  if (bgm) {
+    bgm.preload = "auto";
+    // Preload early so playback can start immediately on candle click.
+    bgm.load();
+  }
+
+  function smoothBgmVolume(targetVolume, durationMs = 320) {
+    if (!bgm) return;
+
+    const clampedTarget = Math.max(0, Math.min(1, targetVolume));
+
+    if (bgmVolumeTweenFrame) {
+      cancelAnimationFrame(bgmVolumeTweenFrame);
+      bgmVolumeTweenFrame = 0;
+    }
+
+    if (!Number.isFinite(durationMs) || durationMs <= 0) {
+      bgm.volume = clampedTarget;
+      return;
+    }
+
+    const startVolume = Number.isFinite(bgm.volume)
+      ? bgm.volume
+      : clampedTarget;
+    const delta = clampedTarget - startVolume;
+
+    if (Math.abs(delta) < 0.005) {
+      bgm.volume = clampedTarget;
+      return;
+    }
+
+    const startTime = performance.now();
+    const step = (now) => {
+      const progress = Math.min(1, (now - startTime) / durationMs);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      bgm.volume = startVolume + delta * eased;
+
+      if (progress < 1) {
+        bgmVolumeTweenFrame = requestAnimationFrame(step);
+      } else {
+        bgm.volume = clampedTarget;
+        bgmVolumeTweenFrame = 0;
+      }
+    };
+
+    bgmVolumeTweenFrame = requestAnimationFrame(step);
+  }
+
+  function armBgmRetryOnNextInteraction() {
+    if (bgmRetryArmed) return;
+    bgmRetryArmed = true;
+
+    const retry = () => {
+      document.removeEventListener("pointerdown", retry);
+      document.removeEventListener("keydown", retry);
+      bgmRetryArmed = false;
+      void startBgmPlayback();
+    };
+
+    document.addEventListener("pointerdown", retry, { once: true });
+    document.addEventListener("keydown", retry, { once: true });
+  }
+
+  function startBgmPlayback() {
+    if (!bgm) return Promise.resolve(false);
+
+    bgm.loop = true;
+    bgm.preload = "auto";
+    if (bgm.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+      bgm.load();
+    }
+
+    if (!bgm.paused) {
+      bgm.muted = false;
+      smoothBgmVolume(BGM_BASE_VOLUME, 700);
+      return Promise.resolve(true);
+    }
+
+    bgm.volume = 0;
+    bgm.muted = false;
+    smoothBgmVolume(BGM_BASE_VOLUME, 1800);
+
+    return bgm
+      .play()
+      .then(() => {
+        return true;
+      })
+      .catch((err) => {
+        bgm.muted = false;
+        smoothBgmVolume(0, 120);
+        armBgmRetryOnNextInteraction();
+        console.log("Audio playback blocked by browser policies:", err);
+        return false;
+      });
+  }
 
   startIntroCountdown = () => {
     if (introCountdownStarted) return;
@@ -571,31 +671,15 @@ window.onload = () => {
     mobileBirthdayMedia.addListener(formatBirthdayTextForViewport);
   }
   function triggerBlowSequence() {
+    if (bgm) {
+      void startBgmPlayback();
+    }
+
     app.startCosmicMotion();
 
     blowBtn.style.display = "none";
     candlePrompt.style.transition = "opacity 0.4s";
     candlePrompt.style.opacity = "0";
-    if (bgm) {
-      bgm.volume = 0;
-      bgm.loop = true;
-      bgm
-        .play()
-        .then(() => {
-          let vol = 0;
-          const fadeAudio = setInterval(() => {
-            if (vol < 0.5) {
-              vol += 0.05;
-              bgm.volume = Math.min(vol, 0.5);
-            } else {
-              clearInterval(fadeAudio);
-            }
-          }, 200);
-        })
-        .catch((err) =>
-          console.log("Audio playback blocked by browser policies:", err),
-        );
-    }
     candleWrapper.classList.add("hidden");
     overlay.classList.add("fade-bg");
     overlay.style.backgroundColor = "transparent";
@@ -1085,6 +1169,116 @@ window.onload = () => {
     const scrollWrapper = document.getElementById("scroll-wrapper");
     const storyItems = document.querySelectorAll(".story-item");
     const storyCards = document.querySelectorAll(".story-card");
+    const storyVideoCard = document.querySelector(
+      '.story-item[data-story-idx="4"]',
+    );
+    const storyVideoFlipCard = storyVideoCard?.querySelector(".story-card");
+    const storyVideoVisibilityTarget =
+      storyVideoCard?.querySelector(".story-card-photo") ||
+      storyVideoFlipCard ||
+      storyVideoCard;
+    const storyVideo = storyVideoCard?.querySelector("video.story-card-img");
+    let isStoryVideoActive = false;
+    let isStoryVideoFullyVisible = false;
+
+    function isEntryFullyVisible(entry, tolerancePx = 6) {
+      if (!entry || !entry.rootBounds) return false;
+
+      const targetRect = entry.boundingClientRect;
+      const rootRect = entry.rootBounds;
+
+      return (
+        targetRect.top >= rootRect.top - tolerancePx &&
+        targetRect.bottom <= rootRect.bottom + tolerancePx &&
+        targetRect.left >= rootRect.left - tolerancePx &&
+        targetRect.right <= rootRect.right + tolerancePx
+      );
+    }
+
+    function stopStoryVideo() {
+      if (!storyVideo) return;
+      if (!isStoryVideoActive && storyVideo.paused) return;
+
+      if (!storyVideo.paused) {
+        storyVideo.pause();
+      }
+      isStoryVideoActive = false;
+      smoothBgmVolume(BGM_BASE_VOLUME, 280);
+    }
+
+    function playStoryVideo() {
+      if (!storyVideo || isStoryVideoActive) return;
+
+      isStoryVideoActive = true;
+      storyVideo.muted = false;
+      storyVideo.volume = 1;
+      smoothBgmVolume(BGM_DUCKED_VOLUME, 260);
+
+      const playPromise = storyVideo.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch((err) => {
+          isStoryVideoActive = false;
+          smoothBgmVolume(BGM_BASE_VOLUME, 280);
+          console.log("Story video playback blocked:", err);
+        });
+      }
+    }
+
+    function isStoryCardFlipped() {
+      if (!storyVideoFlipCard) return false;
+
+      const toggledFlip = storyVideoFlipCard.classList.contains("flipped");
+      const hoverFlip =
+        window.matchMedia("(hover: hover)").matches &&
+        storyVideoFlipCard.matches(":hover");
+
+      return toggledFlip || hoverFlip;
+    }
+
+    function syncStoryVideoPlayback() {
+      if (!storyVideo) return;
+
+      const shouldPlay = isStoryVideoFullyVisible && !isStoryCardFlipped();
+      if (shouldPlay) {
+        playStoryVideo();
+      } else {
+        stopStoryVideo();
+      }
+    }
+
+    if (storyVideoVisibilityTarget && storyVideo && scrollWrapper) {
+      storyVideo.removeAttribute("autoplay");
+      storyVideo.pause();
+
+      const storyVideoObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            isStoryVideoFullyVisible =
+              entry.isIntersecting && isEntryFullyVisible(entry);
+
+            syncStoryVideoPlayback();
+          });
+        },
+        {
+          root: scrollWrapper,
+          threshold: [0, 0.5, 0.85, 1],
+        },
+      );
+
+      storyVideoObserver.observe(storyVideoVisibilityTarget);
+
+      if (storyVideoFlipCard) {
+        storyVideoFlipCard.addEventListener(
+          "mouseenter",
+          syncStoryVideoPlayback,
+        );
+        storyVideoFlipCard.addEventListener(
+          "mouseleave",
+          syncStoryVideoPlayback,
+        );
+      }
+    }
+
     function runTypewriter(dateEl) {
       if (!dateEl || dateEl.dataset.twDone) return;
       dateEl.dataset.twDone = "1";
@@ -1144,11 +1338,17 @@ window.onload = () => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           card.classList.toggle("flipped");
+          if (card === storyVideoFlipCard) {
+            syncStoryVideoPlayback();
+          }
         }
       });
       card.addEventListener("click", () => {
         if (window.matchMedia("(hover: none)").matches) {
           card.classList.toggle("flipped");
+          if (card === storyVideoFlipCard) {
+            syncStoryVideoPlayback();
+          }
         }
       });
     });
