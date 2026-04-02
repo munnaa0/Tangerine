@@ -1,4 +1,4 @@
-/* --- SCROLLABLE FOREGROUND --- */
+
 #scroll-wrapper {
   position: absolute;
   top: 0;
@@ -8,24 +8,24 @@
   overflow-y: scroll;
   overflow-x: hidden;
   z-index: 50;
-  pointer-events: none; /* Initially locked */
+  pointer-events: none; 
   opacity: 0;
   transition: opacity 1.5s ease-in-out;
 }
 
 #scroll-wrapper.visible {
   opacity: 1;
-  pointer-events: auto; /* Enables scrolling and clicking after intros */
+  pointer-events: auto; 
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
+
 #scroll-wrapper::-webkit-scrollbar {
   display: none;
 }
-/* Hide scrollbar for IE, Edge and Firefox */
+
 #scroll-wrapper {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; 
+  scrollbar-width: none; 
 }
 
 @media (max-width: 768px) {
@@ -77,7 +77,7 @@
   box-shadow: 0 0 6px rgba(255, 170, 0, 0.6);
 }
 
-/* ─── Gift Section Layout ───────────────────────────────────────────────────── */
+
 
 .gift-section {
   min-height: 100vh;
@@ -99,7 +99,7 @@
   max-width: 560px;
   width: min(560px, 92vw);
   position: relative;
-  /* Cosmic glass — more transparent */
+  
   background: linear-gradient(
     145deg,
     rgba(30, 10, 60, 0.18) 0%,
@@ -120,14 +120,14 @@
   animation: panelGlow 6s ease-in-out infinite;
 }
 
-/* ─── Premium Gift Box Pattern Wrapper ───────────────────────────────────────── */
+
 
 .gift-box-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow: hidden; /* keeping overflow mainly for the parent */
-  max-height: 480px; /* Increased max-height for new aura */
+  overflow: hidden; 
+  max-height: 480px; 
   transition:
     max-height 0.9s cubic-bezier(0.4, 0, 0.2, 1),
     opacity 0.7s ease,
@@ -146,7 +146,7 @@
   margin: 0;
 }
 
-/* Premium Feature 1: Title moved outside glass content */
+
 .gift-title-container {
   text-align: center;
   margin-bottom: 30px;
@@ -189,7 +189,7 @@
   animation: titleShimmer 4.5s ease-in-out infinite;
 }
 
-/* ─── Premium Feature 3: Rotating Celestial Ring ────────────────────────────── */
+
 .celestial-ring {
   position: absolute;
   top: 55%;
@@ -220,7 +220,7 @@
     0 0 20px #ffb703;
 }
 
-/* ─── Premium Feature 4: 3D Orbit Elements ──────────────────────────────────── */
+
 .orbit-elements {
   position: absolute;
   top: 0;
@@ -268,7 +268,7 @@
   font-size: 1.1rem;
 }
 
-/* Keyframes for new premium features */
+
 @keyframes floatTitle {
   0%,
   100% {
@@ -324,7 +324,7 @@
   }
 }
 
-/* ─── Premium Feature 2: Magical Spinning Aura ──────────────────────────────── */
+
 .magical-aura {
   position: absolute;
   top: 55%;
@@ -372,7 +372,7 @@
   transition: all 1s ease-out;
 }
 
-/* ─── Premium Feature 3: Cinematic Opening Beam ─────────────────────────────── */
+
 .gift-light-beam {
   position: absolute;
   bottom: 0px;
@@ -415,7 +415,7 @@
   }
 }
 
-/* ─── Premium Feature 4 & 5: SVG Gold Bow & Floating Sparkles ──────────────── */
+
 .gift-sparkles {
   position: absolute;
   top: 0;
@@ -486,7 +486,7 @@
   }
 }
 
-/* ─── Premium Gift Box Visuals ───────────────────────────────────────────────── */
+
 
 .gift-box {
   position: relative;
@@ -497,7 +497,7 @@
   outline: none;
   z-index: 2;
   transform-style: preserve-3d;
-  /* Premium 3D float */
+  
   animation:
     premiumFloat 4s ease-in-out infinite,
     boxGlow 3s ease-in-out infinite alternate;
@@ -537,7 +537,7 @@
   }
 }
 
-/* Premium Feature 1: Animated Gift Box Image */
+
 .gift-box-image {
   position: absolute;
   top: 0;
@@ -557,7 +557,7 @@
 .gift-box.open .gift-box-image {
   transform: scale(1.1);
   filter: brightness(1.2);
-  /* Optionally fade it or keep it depending on desired effect, keeping it visible for now */
+  
 }
 
 .gift-box.open {
@@ -615,7 +615,7 @@
   transition: opacity 0.5s ease;
 }
 
-/* ─── Gift Message ───────────────────────────────────────────────────────────── */
+
 
 .gift-message {
   margin: 0 auto;
@@ -686,12 +686,12 @@
   margin: 1.2rem auto 0;
 }
 
-/* ─── Heart Burst ────────────────────────────────────────────────────────────── */
+
 
 .heart-burst {
   position: relative;
   width: 220px;
-  height: 0; /* no layout space until active */
+  height: 0; 
   margin: 0 auto;
   overflow: visible;
   opacity: 0;
@@ -814,7 +814,7 @@
   }
 }
 
-/* ─── NEW 3: Gift hint float (tap prompt) ───────────────────────────────────── */
+
 @keyframes hintFloat {
   0%,
   100% {

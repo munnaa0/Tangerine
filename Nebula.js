@@ -17,8 +17,6 @@ export class Nebula {
     const fragmentShader = `
             uniform float time;
             varying vec3 vPosition;
-
-            // Simple 3D Noise for gas clouds
             vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
             vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
             float snoise(vec3 v){ 
@@ -38,7 +36,7 @@ export class Nebula {
                          i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
                        + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) 
                        + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
-              float n_ = 1.0/7.0; // N=7
+              float n_ = 1.0/7.0;
               vec3  ns = n_ * D.wyz - D.xzx;
               vec4 j = p - 49.0 * floor(p * ns.z *ns.z);
               vec4 x_ = floor(j * ns.z);
@@ -80,25 +78,18 @@ export class Nebula {
             }
 
             void main() {
-                // Scale coordinate down for huge, sprawling gas clouds
                 vec3 pos = normalize(vPosition) * 3.0;
-                
-                // Base noise for nebula shape
                 float n = fbm(pos + time * 0.002);
                 float n2 = fbm(pos * 2.0 - time * 0.001);
-                
-                // Color mapping: Purple/Pink/Blue hues mixed
-                vec3 color1 = vec3(0.1, 0.0, 0.2); // Deep purple
-                vec3 color2 = vec3(0.0, 0.2, 0.3); // Deep cyan
-                vec3 color3 = vec3(0.4, 0.1, 0.3); // Magenta
+                vec3 color1 = vec3(0.1, 0.0, 0.2);
+                vec3 color2 = vec3(0.0, 0.2, 0.3);
+                vec3 color3 = vec3(0.4, 0.1, 0.3);
                 
                 vec3 finalColor = mix(color1, color2, smoothstep(-0.2, 0.8, n));
                 finalColor = mix(finalColor, color3, smoothstep(0.3, 0.9, n2));
-                
-                // Reduce opacity where noise is low to let stars shine through cleanly
                 float alpha = smoothstep(-0.1, 1.0, n * n2) * 0.4;
                 
-                gl_FragColor = vec4(finalColor * alpha, 1.0); // Premultiplied-ish
+                gl_FragColor = vec4(finalColor * alpha, 1.0);
             }
         `;
 
@@ -108,8 +99,8 @@ export class Nebula {
       uniforms: {
         time: { value: 0.0 },
       },
-      side: THREE.BackSide, // Draw on the inside of the giant sphere
-      blending: THREE.AdditiveBlending, // Add light to background
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
       transparent: true,
       depthWrite: false,
     });
@@ -120,6 +111,6 @@ export class Nebula {
 
   update(time) {
     this.material.uniforms.time.value = time;
-    this.mesh.rotation.y = time * 0.005; // Extremely slow rotation
+    this.mesh.rotation.y = time * 0.005;
   }
 }

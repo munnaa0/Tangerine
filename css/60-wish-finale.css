@@ -1,6 +1,4 @@
-/* ═══════════════════════════════════════════════════════════════════════════════
-   SECTION 6: MAKE A WISH (PREMIUM REDESIGN)
-   ═══════════════════════════════════════════════════════════════════════════════ */
+
 
 .wish-section {
   min-height: 100vh;
@@ -34,7 +32,7 @@
   }
 }
 
-/* Feature 1: Floating Cosmic Background */
+
 .wish-cosmic-bg {
   position: absolute;
   top: 0;
@@ -47,7 +45,7 @@
   transition: opacity 2s ease;
 }
 
-/* Cosmic Background Vanish */
+
 .wish-cosmic-bg.sent {
   animation: cosmicBgVanish 1.2s ease-in forwards;
 }
@@ -126,7 +124,7 @@
   }
 }
 
-/* Title Outside */
+
 .wish-header {
   text-align: center;
   margin-bottom: 40px;
@@ -137,7 +135,7 @@
   transition: opacity 1.5s ease;
 }
 
-/* New Feature 1: Elegant Slide & Fade Sequence */
+
 .wish-header.sent {
   animation: titleEtherealVanish 1.2s cubic-bezier(0.5, 0, 0.2, 1) forwards;
   pointer-events: none;
@@ -215,7 +213,7 @@
   letter-spacing: 0.5px;
 }
 
-/* Premium Container */
+
 .wish-container.premium-glass {
   width: min(700px, 92vw);
   padding: 50px;
@@ -249,7 +247,7 @@
 }
 
 .wish-container.sent {
-  /* Supernova Implosion Box Fade */
+  
   animation: wishSupernovaImplode 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   pointer-events: none;
 }
@@ -280,7 +278,7 @@
   }
 }
 
-/* Feature 3: Massive PARALLEL Meteor Shower Burst */
+
 .wish-star-burst {
   position: fixed;
   top: 0;
@@ -305,7 +303,7 @@
     0 0 10px 3px var(--c, #ffffff),
     0 0 20px 6px #fff;
   opacity: 0;
-  /* Rotate 45deg to point head top-right */
+  
   transform: rotate(45deg) scale(0);
   transform-origin: center center;
   will-change: transform, opacity;
@@ -316,14 +314,14 @@
   animation: starEruptParallel var(--dur, 2.5s) var(--delay, 0s) linear forwards;
 }
 
-/* The long tail of the shooting star */
+
 .burst-star::after {
   content: "";
   position: absolute;
-  top: 100%; /* Tail trails behind the head down-left */
+  top: 100%; 
   left: 50%;
   width: 3px;
-  height: 350px; /* Longer dramatic streaks */
+  height: 350px; 
   background: linear-gradient(
     to bottom,
     var(--c, rgba(255, 255, 255, 1)),
@@ -334,7 +332,7 @@
   opacity: 0.9;
 }
 
-/* Feature 4: Sub-particles following the tail */
+
 .burst-star::before {
   content: "";
   position: absolute;
@@ -359,7 +357,7 @@
   90% {
     opacity: 1;
   }
-  /* Travel dynamically based on JS */
+  
   100% {
     transform: translate(var(--tx), var(--ty)) rotate(45deg)
       scale(calc(var(--s, 1) * 0.8));
@@ -367,7 +365,7 @@
   }
 }
 
-/* Feature 5: Shockwave Ring Explosion when sent */
+
 .wish-container::before {
   content: "";
   position: absolute;
@@ -406,7 +404,7 @@
   }
 }
 
-/* Feature 2: Animated Tracing Light Border */
+
 .border-trace {
   position: absolute;
   top: 0;
@@ -441,7 +439,7 @@
   }
 }
 
-/* Feature 3: Stardust Background Effect */
+
 .wish-stardust {
   position: absolute;
   inset: 0;
@@ -477,7 +475,7 @@
   z-index: 2;
 }
 
-/* Feature 4: Input Field Exhaust */
+
 .wish-input-wrapper.sent .textarea-glow {
   animation: inputExhaust 1s forwards;
 }
@@ -495,7 +493,7 @@
   }
 }
 
-/* Feature 4: Custom Aesthetic Textarea */
+
 .textarea-container {
   width: 100%;
   position: relative;
@@ -555,7 +553,7 @@
   transform: translateY(-2px);
 }
 
-/* Feature 5: Cosmic Button */
+
 .cosmic-btn {
   position: relative;
   background: transparent;
@@ -633,9 +631,7 @@
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════════
-   SECTION 7: GRAND FINALE
-   ═══════════════════════════════════════════════════════════════════════════════ */
+
 
 .finale-section {
   position: fixed;
@@ -644,12 +640,12 @@
   transform: translate(-50%, -50%);
   width: 100vw;
   height: 100vh;
-  display: none; /* Flex when activated */
+  display: none; 
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 50; /* Above everything */
-  pointer-events: none; /* So it doesn't block scroll */
+  z-index: 50; 
+  pointer-events: none; 
 }
 
 .finale-content {
@@ -687,7 +683,7 @@
     transform 2.5s ease 0.5s;
 }
 
-/* Footer in finale */
+
 .finale-content .story-footer {
   margin-top: 3rem;
   opacity: 0;
@@ -703,7 +699,7 @@
   transition-delay: 7s;
 }
 
-/* When active, show them gradually */
+
 .finale-section.active .finale-text.line-1 {
   opacity: 1;
   transform: translateY(0);

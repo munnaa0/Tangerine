@@ -6,8 +6,6 @@ export class CometSystem {
     this.comets = [];
     this.maxComets = 3;
     this.maxTailPoints = 30;
-
-    // Setup texture for comet head
     const canvas = document.createElement("canvas");
     canvas.width = 32;
     canvas.height = 32;
@@ -31,13 +29,9 @@ export class CometSystem {
 
   spawnComet() {
     if (this.comets.length >= this.maxComets) return;
-
-    // Random starting position (far away)
     const startX = (Math.random() - 0.5) * 800;
-    const startY = 200 + Math.random() * 200; // High up
-    const startZ = -300 - Math.random() * 200; // Deep in bg
-
-    // Velocity directed generally downward and across
+    const startY = 200 + Math.random() * 200;
+    const startZ = -300 - Math.random() * 200;
     const velX = (Math.random() - 0.5) * 4.0;
     const velY = -2.0 - Math.random() * 3.0;
     const velZ = Math.random() * 2.0;
@@ -56,17 +50,12 @@ export class CometSystem {
   }
 
   spawnWishComet() {
-    // Special, big, persistent comet traversing from bottom-left to top-right
     const startX = -400;
     const startY = -300;
     const startZ = -100;
-
-    // Going up and right
     const velX = 2.5;
     const velY = 1.5;
     const velZ = -0.5;
-
-    // More pink/gold color and larger size, slower decay
     const comet = this.createCometInstance(
       startX,
       startY,
@@ -96,7 +85,7 @@ export class CometSystem {
     const comet = {
       head: new THREE.Sprite(this.material),
       velocity: new THREE.Vector3(velX, velY, velZ),
-      life: initialLife, // Fades out
+      life: initialLife,
       tailIndex: 0,
       tailCount: 0,
       tailHistory: new Float32Array(this.maxTailPoints * 3),
@@ -126,8 +115,6 @@ export class CometSystem {
     );
     comet.tailGeometry.attributes.position.setUsage(THREE.DynamicDrawUsage);
     comet.tailGeometry.setDrawRange(0, 0);
-
-    // Initialize tail line
     comet.tailLine = new THREE.Line(comet.tailGeometry, comet.tailMaterial);
 
     this.scene.add(comet.head);
@@ -137,12 +124,9 @@ export class CometSystem {
   }
 
   update(time) {
-    // Randomly spawn
     if (Math.random() < 0.005) {
       this.spawnComet();
     }
-
-    // Periodically spawn wish comet if activated
     if (this.wishCometActive && Math.random() < 0.002) {
       let hasWish = this.comets.some((c) => c.isWishComet);
       if (!hasWish) this.spawnWishComet();
@@ -150,11 +134,7 @@ export class CometSystem {
 
     for (let i = this.comets.length - 1; i >= 0; i--) {
       const comet = this.comets[i];
-
-      // Move head
       comet.head.position.add(comet.velocity);
-
-      // Record position in a ring buffer to avoid allocations.
       const writeIndex = comet.tailIndex * 3;
       comet.tailHistory[writeIndex] = comet.head.position.x;
       comet.tailHistory[writeIndex + 1] = comet.head.position.y;
@@ -177,17 +157,13 @@ export class CometSystem {
         comet.tailGeometry.setDrawRange(0, comet.tailCount);
         tailAttr.needsUpdate = true;
       }
-
-      // Fade out
       if (!comet.isWishComet) {
         comet.life -= 0.002;
       } else {
-        comet.life -= 0.001; // Slower fade for wish comet
+        comet.life -= 0.001;
       }
       comet.head.material.opacity = Math.min(1.0, comet.life);
       comet.tailMaterial.opacity = Math.min(1.0, comet.life * 0.8);
-
-      // Remove if dead or too low / too high
       const outOfBounds = comet.isWishComet
         ? comet.head.position.y > 600 || comet.head.position.x > 800
         : comet.head.position.y < -400;
