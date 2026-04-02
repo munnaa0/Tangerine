@@ -228,6 +228,102 @@ window.onload = () => {
   const yearSelect = document.getElementById("dob-year");
   let startIntroCountdown = () => {};
 
+  function initCustomSelect(selectEl) {
+    if (!selectEl) return;
+
+    const pickerGroup = selectEl.closest(".picker-group");
+    if (!pickerGroup) return;
+
+    selectEl.classList.add("native-select-hidden");
+
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "custom-select-trigger";
+
+    const optionList = document.createElement("div");
+    optionList.className = "custom-select-list";
+
+    const options = Array.from(selectEl.options);
+    const optionButtons = [];
+
+    const updateTriggerText = () => {
+      const selectedOption =
+        selectEl.options[selectEl.selectedIndex] || options[0] || null;
+      trigger.textContent = selectedOption ? selectedOption.textContent : "";
+    };
+
+    const closeDropdown = () => {
+      pickerGroup.classList.remove("open");
+      trigger.setAttribute("aria-expanded", "false");
+    };
+
+    const openDropdown = () => {
+      pickerGroup.classList.add("open");
+      trigger.setAttribute("aria-expanded", "true");
+    };
+
+    const setActiveOption = () => {
+      optionButtons.forEach((btn) => {
+        const isActive = btn.dataset.value === selectEl.value;
+        btn.classList.toggle("active", isActive);
+      });
+    };
+
+    options.forEach((opt) => {
+      const optionBtn = document.createElement("button");
+      optionBtn.type = "button";
+      optionBtn.className = "custom-select-option";
+      optionBtn.textContent = opt.textContent;
+      optionBtn.dataset.value = opt.value;
+
+      if (opt.disabled) {
+        optionBtn.disabled = true;
+      }
+
+      optionBtn.addEventListener("click", () => {
+        if (opt.disabled) return;
+        selectEl.value = opt.value;
+        selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+        updateTriggerText();
+        setActiveOption();
+        closeDropdown();
+      });
+
+      optionList.appendChild(optionBtn);
+      optionButtons.push(optionBtn);
+    });
+
+    trigger.setAttribute("aria-haspopup", "listbox");
+    trigger.setAttribute("aria-expanded", "false");
+    trigger.addEventListener("click", () => {
+      const isOpen = pickerGroup.classList.contains("open");
+      if (isOpen) {
+        closeDropdown();
+      } else {
+        openDropdown();
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!pickerGroup.contains(event.target)) {
+        closeDropdown();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeDropdown();
+    });
+
+    pickerGroup.appendChild(trigger);
+    pickerGroup.appendChild(optionList);
+    updateTriggerText();
+    setActiveOption();
+  }
+
+  initCustomSelect(daySelect);
+  initCustomSelect(monthSelect);
+  initCustomSelect(yearSelect);
+
   if (accessSubmit) {
     accessSubmit.addEventListener("click", () => {
       const d = daySelect.value;
