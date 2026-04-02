@@ -1,12 +1,12 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
 export class Nebula {
-    constructor(scene) {
-        this.scene = scene;
-        
-        const geometry = new THREE.SphereGeometry(900, 64, 64);
-        
-        const vertexShader = `
+  constructor(scene) {
+    this.scene = scene;
+
+    const geometry = new THREE.SphereGeometry(900, 64, 64);
+
+    const vertexShader = `
             varying vec3 vPosition;
             void main() {
                 vPosition = position;
@@ -14,7 +14,7 @@ export class Nebula {
             }
         `;
 
-        const fragmentShader = `
+    const fragmentShader = `
             uniform float time;
             varying vec3 vPosition;
 
@@ -102,24 +102,24 @@ export class Nebula {
             }
         `;
 
-        this.material = new THREE.ShaderMaterial({
-            vertexShader,
-            fragmentShader,
-            uniforms: {
-                time: { value: 0.0 }
-            },
-            side: THREE.BackSide, // Draw on the inside of the giant sphere
-            blending: THREE.AdditiveBlending, // Add light to background
-            transparent: true,
-            depthWrite: false
-        });
+    this.material = new THREE.ShaderMaterial({
+      vertexShader,
+      fragmentShader,
+      uniforms: {
+        time: { value: 0.0 },
+      },
+      side: THREE.BackSide, // Draw on the inside of the giant sphere
+      blending: THREE.AdditiveBlending, // Add light to background
+      transparent: true,
+      depthWrite: false,
+    });
 
-        this.mesh = new THREE.Mesh(geometry, this.material);
-        this.scene.add(this.mesh);
-    }
+    this.mesh = new THREE.Mesh(geometry, this.material);
+    this.scene.add(this.mesh);
+  }
 
-    update(time) {
-        this.material.uniforms.time.value = time;
-        this.mesh.rotation.y = time * 0.005; // Extremely slow rotation
-    }
+  update(time) {
+    this.material.uniforms.time.value = time;
+    this.mesh.rotation.y = time * 0.005; // Extremely slow rotation
+  }
 }

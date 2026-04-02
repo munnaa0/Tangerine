@@ -15,6 +15,13 @@ class CosmosApp {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
 
+    this.quality = this.createQualityProfile();
+    this.targetFrameInterval = 1 / this.quality.targetFps;
+    this.lastFrameTime = 0;
+    this.smoothedFps = this.quality.targetFps;
+    this.lastQualityCheckTime = 0;
+    this.dynamicPixelRatio = this.quality.initialPixelRatio;
+
     this.initScene();
     this.initPostProcessing();
     this.initObjects();
@@ -24,6 +31,29 @@ class CosmosApp {
     this.isCosmicMotionStarted = false;
     this.motionStartTime = 0;
     this.animate();
+  }
+
+  createQualityProfile() {
+    const isMobile =
+      window.matchMedia("(max-width: 900px)").matches ||
+      "ontouchstart" in window;
+    const cores = navigator.hardwareConcurrency || 4;
+    const memory = navigator.deviceMemory || 4;
+
+    const lowEnd = isMobile || cores <= 4 || memory <= 4;
+
+    return {
+      targetFps: 60,
+      initialPixelRatio: Math.min(
+        window.devicePixelRatio || 1,
+        lowEnd ? 1.25 : 1.75,
+      ),
+      minPixelRatio: lowEnd ? 0.9 : 1.0,
+      maxPixelRatio: Math.min(window.devicePixelRatio || 1, lowEnd ? 1.35 : 2),
+      lowFpsThreshold: lowEnd ? 26 : 42,
+      highFpsThreshold: lowEnd ? 40 : 57,
+      qualityCheckInterval: 2.0,
+    };
   }
 
   initScene() {
@@ -46,7 +76,7 @@ class CosmosApp {
     });
 
     this.renderer.setSize(this.width, this.height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
+    this.renderer.setPixelRatio(this.dynamicPixelRatio);
     this.renderer.toneMapping = THREE.ReinhardToneMapping; // Better colors with HDR bloom
     this.renderer.toneMappingExposure = 1.2;
   }
@@ -87,6 +117,11 @@ class CosmosApp {
 
   addEventListeners() {
     window.addEventListener("resize", this.onWindowResize.bind(this));
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        this.lastFrameTime = this.clock.getElapsedTime();
+      }
+    });
   }
 
   onWindowResize() {
@@ -98,6 +133,44 @@ class CosmosApp {
 
     this.renderer.setSize(this.width, this.height);
     this.composer.setSize(this.width, this.height);
+    this.applyPixelRatio(this.dynamicPixelRatio);
+  }
+
+  applyPixelRatio(nextRatio) {
+    const clamped = Math.min(
+      this.quality.maxPixelRatio,
+      Math.max(this.quality.minPixelRatio, nextRatio),
+    );
+
+    if (Math.abs(clamped - this.dynamicPixelRatio) < 0.05) return;
+
+    this.dynamicPixelRatio = clamped;
+    this.renderer.setPixelRatio(this.dynamicPixelRatio);
+    this.renderer.setSize(this.width, this.height, false);
+    this.composer.setPixelRatio(this.dynamicPixelRatio);
+    this.composer.setSize(this.width, this.height);
+  }
+
+  updateAdaptiveQuality(delta, elapsedTime) {
+    if (!Number.isFinite(delta) || delta <= 0) return;
+
+    const instantFps = 1 / delta;
+    this.smoothedFps = THREE.MathUtils.lerp(this.smoothedFps, instantFps, 0.08);
+
+    if (
+      elapsedTime - this.lastQualityCheckTime <
+      this.quality.qualityCheckInterval
+    ) {
+      return;
+    }
+
+    this.lastQualityCheckTime = elapsedTime;
+
+    if (this.smoothedFps < this.quality.lowFpsThreshold) {
+      this.applyPixelRatio(this.dynamicPixelRatio - 0.1);
+    } else if (this.smoothedFps > this.quality.highFpsThreshold) {
+      this.applyPixelRatio(this.dynamicPixelRatio + 0.05);
+    }
   }
 
   startCosmicMotion() {
@@ -109,7 +182,23 @@ class CosmosApp {
   animate() {
     requestAnimationFrame(this.animate.bind(this));
 
-    const rawTime = this.clock.getElapsedTime();
+    if (document.hidden) return;
+
+    const now = this.clock.getElapsedTime();
+
+    if (this.lastFrameTime === 0) {
+      this.lastFrameTime = now;
+      return;
+    }
+
+    const elapsed = now - this.lastFrameTime;
+    if (elapsed < this.targetFrameInterval) return;
+
+    this.lastFrameTime = now;
+
+    this.updateAdaptiveQuality(elapsed, now);
+
+    const rawTime = now;
     const motionTime = this.isCosmicMotionStarted
       ? rawTime - this.motionStartTime
       : 0;
@@ -130,6 +219,146 @@ class CosmosApp {
 window.onload = () => {
   const app = new CosmosApp();
 
+  // Access Gate Logic
+  const accessGate = document.getElementById("access-gate");
+  const accessSubmit = document.getElementById("access-submit");
+  const accessMsg = document.getElementById("access-msg");
+  const daySelect = document.getElementById("dob-day");
+  const monthSelect = document.getElementById("dob-month");
+  const yearSelect = document.getElementById("dob-year");
+  let startIntroCountdown = () => {};
+
+  function initCustomSelect(selectEl) {
+    if (!selectEl) return;
+
+    const pickerGroup = selectEl.closest(".picker-group");
+    if (!pickerGroup) return;
+
+    selectEl.classList.add("native-select-hidden");
+
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "custom-select-trigger";
+
+    const optionList = document.createElement("div");
+    optionList.className = "custom-select-list";
+
+    const options = Array.from(selectEl.options);
+    const optionButtons = [];
+
+    const updateTriggerText = () => {
+      const selectedOption =
+        selectEl.options[selectEl.selectedIndex] || options[0] || null;
+      trigger.textContent = selectedOption ? selectedOption.textContent : "";
+    };
+
+    const closeDropdown = () => {
+      pickerGroup.classList.remove("open");
+      trigger.setAttribute("aria-expanded", "false");
+    };
+
+    const openDropdown = () => {
+      pickerGroup.classList.add("open");
+      trigger.setAttribute("aria-expanded", "true");
+    };
+
+    const setActiveOption = () => {
+      optionButtons.forEach((btn) => {
+        const isActive = btn.dataset.value === selectEl.value;
+        btn.classList.toggle("active", isActive);
+      });
+    };
+
+    options.forEach((opt) => {
+      const optionBtn = document.createElement("button");
+      optionBtn.type = "button";
+      optionBtn.className = "custom-select-option";
+      optionBtn.textContent = opt.textContent;
+      optionBtn.dataset.value = opt.value;
+
+      if (opt.disabled) {
+        optionBtn.disabled = true;
+      }
+
+      optionBtn.addEventListener("click", () => {
+        if (opt.disabled) return;
+        selectEl.value = opt.value;
+        selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+        updateTriggerText();
+        setActiveOption();
+        closeDropdown();
+      });
+
+      optionList.appendChild(optionBtn);
+      optionButtons.push(optionBtn);
+    });
+
+    trigger.setAttribute("aria-haspopup", "listbox");
+    trigger.setAttribute("aria-expanded", "false");
+    trigger.addEventListener("click", () => {
+      const isOpen = pickerGroup.classList.contains("open");
+      if (isOpen) {
+        closeDropdown();
+      } else {
+        openDropdown();
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!pickerGroup.contains(event.target)) {
+        closeDropdown();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeDropdown();
+    });
+
+    pickerGroup.appendChild(trigger);
+    pickerGroup.appendChild(optionList);
+    updateTriggerText();
+    setActiveOption();
+  }
+
+  initCustomSelect(daySelect);
+  initCustomSelect(monthSelect);
+  initCustomSelect(yearSelect);
+
+  if (accessSubmit) {
+    accessSubmit.addEventListener("click", () => {
+      const d = daySelect.value;
+      const m = monthSelect.value;
+      const y = yearSelect.value;
+
+      if (!d || !m || !y) {
+        accessMsg.textContent =
+          "Sobgula to select koro, naile kivabe verify korbo?!";
+        accessMsg.className = "error";
+        return;
+      }
+
+      if (d === "14" && m === "9" && y === "2002") {
+        accessMsg.textContent = "Correct answer! Jak Mone Ache tomar!!";
+        accessMsg.className = "success";
+
+        setTimeout(() => {
+          accessGate.classList.add("granted");
+          // Start intro sequence only after the gate begins fading out.
+          setTimeout(() => startIntroCountdown(), 1000);
+        }, 1000);
+      } else {
+        accessMsg.textContent = "Tumi TANJILA NA !! Othoba Vule gecho :) ";
+        accessMsg.className = "error";
+
+        // Remove class to retrigger animation later if needed
+        setTimeout(() => accessMsg.classList.remove("error"), 500);
+        // Force reflow to restart animation on next click
+        void accessMsg.offsetWidth;
+        accessMsg.classList.add("error");
+      }
+    });
+  }
+
   // Intro Animation Logic
   const overlay = document.getElementById("intro-overlay");
   const instruction = document.getElementById("intro-instruction");
@@ -142,6 +371,41 @@ window.onload = () => {
   const originalBirthdayText = birthdayText
     ? birthdayText.textContent.trim()
     : "";
+  let introCountdownStarted = false;
+
+  startIntroCountdown = () => {
+    if (introCountdownStarted) return;
+    introCountdownStarted = true;
+
+    let count = 3;
+    countdownEl.textContent = count;
+
+    const interval = setInterval(() => {
+      count--;
+      if (count > 0) {
+        countdownEl.textContent = count;
+      } else {
+        clearInterval(interval);
+
+        // Countdown finished — smoothly collapse instruction & countdown, show the button
+        instruction.style.opacity = "0";
+        instruction.style.maxHeight = "0";
+        instruction.style.marginBottom = "0";
+        countdownEl.style.opacity = "0";
+        countdownEl.style.maxHeight = "0";
+        countdownEl.style.marginBottom = "0";
+
+        // Reveal the candle prompt and blow-candle button
+        candlePrompt.classList.add("visible");
+        blowBtn.classList.add("visible");
+      }
+    }, 1000);
+  };
+
+  // Run intro countdown immediately only if access gate is not active.
+  if (!accessGate || accessGate.classList.contains("granted")) {
+    startIntroCountdown();
+  }
 
   const mobileBirthdayMedia = window.matchMedia("(max-width: 430px)");
 
@@ -1597,26 +1861,4 @@ window.onload = () => {
     // We no longer need the IntersectionObserver for finale text, because we
     // manually trigger it visually upon clicking the wish button now.
   }
-
-  let count = 3;
-  const interval = setInterval(() => {
-    count--;
-    if (count > 0) {
-      countdownEl.textContent = count;
-    } else {
-      clearInterval(interval);
-
-      // Countdown finished — smoothly collapse instruction & countdown, show the button
-      instruction.style.opacity = "0";
-      instruction.style.maxHeight = "0";
-      instruction.style.marginBottom = "0";
-      countdownEl.style.opacity = "0";
-      countdownEl.style.maxHeight = "0";
-      countdownEl.style.marginBottom = "0";
-
-      // Reveal the candle prompt and blow-candle button
-      candlePrompt.classList.add("visible");
-      blowBtn.classList.add("visible");
-    }
-  }, 1000);
 };
