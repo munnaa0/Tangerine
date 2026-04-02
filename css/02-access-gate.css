@@ -52,6 +52,21 @@
   margin: 0;
 }
 
+.mobile-pc-warning {
+  display: none;
+  margin: 0;
+  color: #ff2a2a;
+  font-size: 1rem;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(255, 42, 42, 0.45);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .mobile-pc-warning {
+    display: block;
+  }
+}
+
 .access-question {
   font-size: 1.5rem;
   font-weight: bold;
