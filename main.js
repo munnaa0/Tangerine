@@ -511,11 +511,25 @@ window.onload = () => {
   const BGM_DUCKED_VOLUME = 0.14;
   let bgmVolumeTweenFrame = 0;
   let bgmRetryArmed = false;
+  let bgmStartPromise = null;
+  let bgmPrimedSilently = false;
 
   if (bgm) {
     bgm.preload = "auto";
     // Preload early so playback can start immediately on candle click.
     bgm.load();
+
+    // Prime a muted playback session early so the real start is instant on click.
+    bgm.loop = true;
+    bgm.volume = 0;
+    bgm.muted = true;
+    bgmPrimedSilently = true;
+    const primeAttempt = bgm.play();
+    if (primeAttempt && typeof primeAttempt.catch === "function") {
+      primeAttempt.catch(() => {
+        bgmPrimedSilently = false;
+      });
+    }
   }
 
   function smoothBgmVolume(targetVolume, durationMs = 320) {
@@ -567,24 +581,34 @@ window.onload = () => {
     const retry = () => {
       document.removeEventListener("pointerdown", retry);
       document.removeEventListener("keydown", retry);
+      document.removeEventListener("click", retry);
+      document.removeEventListener("touchend", retry);
       bgmRetryArmed = false;
       void startBgmPlayback();
     };
 
     document.addEventListener("pointerdown", retry, { once: true });
     document.addEventListener("keydown", retry, { once: true });
+    document.addEventListener("click", retry, { once: true });
+    document.addEventListener("touchend", retry, { once: true, passive: true });
   }
 
   function startBgmPlayback() {
     if (!bgm) return Promise.resolve(false);
+    if (bgmStartPromise) return bgmStartPromise;
 
     bgm.loop = true;
     bgm.preload = "auto";
-    if (bgm.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
-      bgm.load();
-    }
 
     if (!bgm.paused) {
+      if (bgmPrimedSilently) {
+        try {
+          bgm.currentTime = 0;
+        } catch {
+          // Ignore if timeline reset is unavailable for this media state.
+        }
+      }
+      bgmPrimedSilently = false;
       bgm.muted = false;
       smoothBgmVolume(BGM_BASE_VOLUME, 700);
       return Promise.resolve(true);
@@ -592,20 +616,53 @@ window.onload = () => {
 
     bgm.volume = 0;
     bgm.muted = false;
-    smoothBgmVolume(BGM_BASE_VOLUME, 1800);
+    const playAttempt = bgm.play();
 
-    return bgm
-      .play()
+    if (!playAttempt || typeof playAttempt.then !== "function") {
+      smoothBgmVolume(BGM_BASE_VOLUME, 1800);
+      return Promise.resolve(true);
+    }
+
+    bgmStartPromise = playAttempt
       .then(() => {
+        bgmPrimedSilently = false;
+        smoothBgmVolume(BGM_BASE_VOLUME, 1800);
         return true;
       })
-      .catch((err) => {
-        bgm.muted = false;
-        smoothBgmVolume(0, 120);
-        armBgmRetryOnNextInteraction();
-        console.log("Audio playback blocked by browser policies:", err);
-        return false;
+      .catch((primaryErr) => {
+        // Some browsers block unmuted play even on gestures; muted play is more permissive.
+        bgm.volume = 0;
+        bgm.muted = true;
+        const mutedAttempt = bgm.play();
+
+        if (!mutedAttempt || typeof mutedAttempt.then !== "function") {
+          bgm.muted = false;
+          smoothBgmVolume(BGM_BASE_VOLUME, 1800);
+          return true;
+        }
+
+        return mutedAttempt
+          .then(() => {
+            bgmPrimedSilently = false;
+            bgm.muted = false;
+            smoothBgmVolume(BGM_BASE_VOLUME, 1800);
+            return true;
+          })
+          .catch((fallbackErr) => {
+            smoothBgmVolume(0, 120);
+            armBgmRetryOnNextInteraction();
+            console.log("Audio playback blocked by browser policies:", {
+              primaryErr,
+              fallbackErr,
+            });
+            return false;
+          });
+      })
+      .finally(() => {
+        bgmStartPromise = null;
       });
+
+    return bgmStartPromise;
   }
 
   startIntroCountdown = () => {
@@ -671,9 +728,8 @@ window.onload = () => {
     mobileBirthdayMedia.addListener(formatBirthdayTextForViewport);
   }
   function triggerBlowSequence() {
-    if (bgm) {
-      void startBgmPlayback();
-    }
+    // Keep this as the first action to preserve user-activation context.
+    void startBgmPlayback();
 
     app.startCosmicMotion();
 
@@ -1185,6 +1241,7 @@ window.onload = () => {
     let isStoryVideoLoading = false;
     let isStoryVideoActive = false;
     let isStoryVideoFullyVisible = false;
+    let hasStoryVideoWarmupStarted = false;
 
     function isEntryFullyVisible(entry, tolerancePx = 6) {
       if (!entry || !entry.rootBounds) return false;
@@ -1198,6 +1255,49 @@ window.onload = () => {
         targetRect.left >= rootRect.left - tolerancePx &&
         targetRect.right <= rootRect.right + tolerancePx
       );
+    }
+
+    function shouldWarmupStoryVideoEarly() {
+      const connection =
+        navigator.connection ||
+        navigator.mozConnection ||
+        navigator.webkitConnection;
+
+      if (!connection) return true;
+      if (connection.saveData) return false;
+
+      const effectiveType = String(connection.effectiveType || "").toLowerCase();
+      return effectiveType !== "slow-2g" && effectiveType !== "2g";
+    }
+
+    function warmupStoryVideoEarly() {
+      if (hasStoryVideoWarmupStarted) return;
+      if (!storyVideo || !storyVideoAssetUrl) return;
+      if (!shouldWarmupStoryVideoEarly()) return;
+
+      hasStoryVideoWarmupStarted = true;
+      ensureStoryVideoSourceLoaded().then((isLoaded) => {
+        if (!isLoaded) {
+          hasStoryVideoWarmupStarted = false;
+        }
+      });
+    }
+
+    function scheduleStoryVideoWarmup() {
+      if (!storyVideo || !storyVideoAssetUrl) return;
+
+      if (typeof window.requestIdleCallback === "function") {
+        window.requestIdleCallback(
+          () => {
+            warmupStoryVideoEarly();
+          },
+          { timeout: 2200 },
+        );
+      } else {
+        setTimeout(() => {
+          warmupStoryVideoEarly();
+        }, 850);
+      }
     }
 
     function ensureStoryVideoSourceLoaded() {
@@ -1313,6 +1413,8 @@ window.onload = () => {
       }
     }
 
+    scheduleStoryVideoWarmup();
+
     if (storyVideoVisibilityTarget && storyVideo && scrollWrapper) {
       storyVideo.removeAttribute("autoplay");
       storyVideo.preload = "none";
@@ -1338,6 +1440,22 @@ window.onload = () => {
       );
 
       storyVideoObserver.observe(storyVideoVisibilityTarget);
+
+      scrollWrapper.addEventListener("scroll", warmupStoryVideoEarly, {
+        once: true,
+        passive: true,
+      });
+      document.addEventListener("pointerdown", warmupStoryVideoEarly, {
+        once: true,
+        passive: true,
+      });
+      document.addEventListener("keydown", warmupStoryVideoEarly, {
+        once: true,
+      });
+      document.addEventListener("touchstart", warmupStoryVideoEarly, {
+        once: true,
+        passive: true,
+      });
 
       if (storyVideoFlipCard) {
         storyVideoFlipCard.addEventListener(
