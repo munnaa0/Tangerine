@@ -1178,6 +1178,11 @@ window.onload = () => {
       storyVideoFlipCard ||
       storyVideoCard;
     const storyVideo = storyVideoCard?.querySelector("video.story-card-img");
+    const storyVideoAssetUrl =
+      storyVideo?.dataset.videoSrc || storyVideo?.dataset.src || "";
+    let storyVideoBlobUrl = "";
+    let storyVideoLoadPromise = null;
+    let isStoryVideoLoading = false;
     let isStoryVideoActive = false;
     let isStoryVideoFullyVisible = false;
 
@@ -1195,6 +1200,48 @@ window.onload = () => {
       );
     }
 
+    function ensureStoryVideoSourceLoaded() {
+      if (!storyVideo) return Promise.resolve(false);
+
+      if (storyVideoBlobUrl) {
+        return Promise.resolve(true);
+      }
+
+      if (storyVideoLoadPromise) {
+        return storyVideoLoadPromise;
+      }
+
+      if (!storyVideoAssetUrl) {
+        return Promise.resolve(false);
+      }
+
+      storyVideoLoadPromise = fetch(storyVideoAssetUrl, {
+        cache: "force-cache",
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to load story video: " + response.status);
+          }
+          return response.blob();
+        })
+        .then((blob) => {
+          storyVideoBlobUrl = URL.createObjectURL(blob);
+          storyVideo.src = storyVideoBlobUrl;
+          storyVideo.preload = "metadata";
+          storyVideo.load();
+          return true;
+        })
+        .catch((err) => {
+          console.log("Story video source load failed:", err);
+          return false;
+        })
+        .finally(() => {
+          storyVideoLoadPromise = null;
+        });
+
+      return storyVideoLoadPromise;
+    }
+
     function stopStoryVideo() {
       if (!storyVideo) return;
       if (!isStoryVideoActive && storyVideo.paused) return;
@@ -1207,21 +1254,41 @@ window.onload = () => {
     }
 
     function playStoryVideo() {
-      if (!storyVideo || isStoryVideoActive) return;
+      if (!storyVideo || isStoryVideoActive || isStoryVideoLoading) return;
 
-      isStoryVideoActive = true;
-      storyVideo.muted = false;
-      storyVideo.volume = 1;
-      smoothBgmVolume(BGM_DUCKED_VOLUME, 260);
+      const beginPlayback = () => {
+        if (!storyVideo || isStoryVideoActive) return;
 
-      const playPromise = storyVideo.play();
-      if (playPromise && typeof playPromise.catch === "function") {
-        playPromise.catch((err) => {
-          isStoryVideoActive = false;
-          smoothBgmVolume(BGM_BASE_VOLUME, 280);
-          console.log("Story video playback blocked:", err);
-        });
+        isStoryVideoActive = true;
+        storyVideo.muted = false;
+        storyVideo.volume = 1;
+        smoothBgmVolume(BGM_DUCKED_VOLUME, 260);
+
+        const playPromise = storyVideo.play();
+        if (playPromise && typeof playPromise.catch === "function") {
+          playPromise.catch((err) => {
+            isStoryVideoActive = false;
+            smoothBgmVolume(BGM_BASE_VOLUME, 280);
+            console.log("Story video playback blocked:", err);
+          });
+        }
+      };
+
+      if (storyVideoBlobUrl) {
+        beginPlayback();
+        return;
       }
+
+      isStoryVideoLoading = true;
+      ensureStoryVideoSourceLoaded().then((isLoaded) => {
+        isStoryVideoLoading = false;
+        if (!isLoaded) return;
+
+        const shouldPlayNow = isStoryVideoFullyVisible && !isStoryCardFlipped();
+        if (!shouldPlayNow) return;
+
+        beginPlayback();
+      });
     }
 
     function isStoryCardFlipped() {
@@ -1248,6 +1315,11 @@ window.onload = () => {
 
     if (storyVideoVisibilityTarget && storyVideo && scrollWrapper) {
       storyVideo.removeAttribute("autoplay");
+      storyVideo.preload = "none";
+      if ((storyVideo.getAttribute("src") || "").trim() !== "") {
+        storyVideo.setAttribute("src", "");
+        storyVideo.load();
+      }
       storyVideo.pause();
 
       const storyVideoObserver = new IntersectionObserver(
@@ -1277,6 +1349,16 @@ window.onload = () => {
           syncStoryVideoPlayback,
         );
       }
+
+      window.addEventListener(
+        "pagehide",
+        () => {
+          if (!storyVideoBlobUrl) return;
+          URL.revokeObjectURL(storyVideoBlobUrl);
+          storyVideoBlobUrl = "";
+        },
+        { once: true },
+      );
     }
 
     function runTypewriter(dateEl) {
