@@ -609,11 +609,33 @@ window.onload = () => {
         smoothBgmVolume(BGM_BASE_VOLUME, 900);
         return true;
       })
-      .catch((err) => {
-        smoothBgmVolume(0, 120);
-        armBgmRetryOnNextInteraction();
-        console.log("Audio playback blocked by browser policies:", err);
-        return false;
+      .catch((primaryErr) => {
+        // Some browsers allow muted play in the same user gesture where unmuted play fails.
+        bgm.volume = 0;
+        bgm.muted = true;
+        const mutedAttempt = bgm.play();
+
+        if (!mutedAttempt || typeof mutedAttempt.then !== "function") {
+          bgm.muted = false;
+          smoothBgmVolume(BGM_BASE_VOLUME, 900);
+          return true;
+        }
+
+        return mutedAttempt
+          .then(() => {
+            bgm.muted = false;
+            smoothBgmVolume(BGM_BASE_VOLUME, 900);
+            return true;
+          })
+          .catch((fallbackErr) => {
+            smoothBgmVolume(0, 120);
+            armBgmRetryOnNextInteraction();
+            console.log("Audio playback blocked by browser policies:", {
+              primaryErr,
+              fallbackErr,
+            });
+            return false;
+          });
       })
       .finally(() => {
         bgmStartPromise = null;
@@ -711,7 +733,29 @@ window.onload = () => {
     }, 4000);
   }
 
-  blowBtn.addEventListener("click", triggerBlowSequence);
+  function triggerBgmFromButtonGesture(event) {
+    if (
+      event.type === "keydown" &&
+      event.key !== "Enter" &&
+      event.key !== " "
+    ) {
+      return;
+    }
+
+    // Early gesture hook improves autoplay-policy reliability on mobile browsers.
+    void startBgmPlayback();
+  }
+
+  if (blowBtn) {
+    blowBtn.addEventListener("pointerdown", triggerBgmFromButtonGesture, {
+      passive: true,
+    });
+    blowBtn.addEventListener("touchstart", triggerBgmFromButtonGesture, {
+      passive: true,
+    });
+    blowBtn.addEventListener("keydown", triggerBgmFromButtonGesture);
+    blowBtn.addEventListener("click", triggerBlowSequence);
+  }
   const giftBox = document.querySelector(".gift-box");
   const giftBoxWrapper = document.querySelector(".gift-box-wrapper");
   const giftMsg = document.querySelector(".gift-message");
