@@ -200,301 +200,7 @@ class CosmosApp {
 }
 window.onload = () => {
   const app = new CosmosApp();
-  const accessGate = document.getElementById("access-gate");
-  const accessSubmit = document.getElementById("access-submit");
-  const accessMsg = document.getElementById("access-msg");
-  const daySelect = document.getElementById("dob-day");
-  const monthSelect = document.getElementById("dob-month");
-  const yearSelect = document.getElementById("dob-year");
-  const ACCESS_TICKET_KEY = "mb_gate_ticket_v1";
-  const ACCESS_TICKET_TTL_MS = 1000 * 60 * 45;
-  let failedAttempts = 0;
-  let nextAllowedAttemptAt = 0;
   let startIntroCountdown = () => {};
-
-  function deriveDigest(input) {
-    let h1 = 0x811c9dc5;
-    let h2 = 0x1b873593;
-
-    for (let i = 0; i < input.length; i++) {
-      const code = input.charCodeAt(i);
-      h1 ^= code;
-      h1 = Math.imul(h1, 0x01000193);
-      h2 ^= code + i;
-      h2 = Math.imul(h2, 0x85ebca6b);
-    }
-
-    const part1 = (h1 >>> 0).toString(16).padStart(8, "0");
-    const part2 = (h2 >>> 0).toString(16).padStart(8, "0");
-    return part1 + part2;
-  }
-
-  function decodeReferenceTuple() {
-    const encoded = [49, 55, 130, 66, 136, 65, 66, 69, 74];
-    const raw = encoded
-      .map((value, index) => String.fromCharCode(value - index * 3))
-      .join("");
-    const [day, month, year] = raw.split("|");
-    return { day, month, year };
-  }
-
-  function buildGateStamp(day, month, year) {
-    const d = Number.parseInt(day, 10);
-    const m = Number.parseInt(month, 10);
-    const y = Number.parseInt(year, 10);
-
-    if (!Number.isInteger(d) || !Number.isInteger(m) || !Number.isInteger(y)) {
-      return "";
-    }
-
-    const mapped = [
-      (d * 13 + m * 17 + y * 19) % 997,
-      (d * d + m * 23 + y) % 991,
-      ((y % 100) * d + m * 31) % 983,
-      ((y >> 1) + d * 29 + m * 7) % 977,
-    ];
-
-    const salt = ["ne", "bu", "la", "-", "ve", "il"].join("");
-    const pepper = ["ly", "ra", "-", "an", "ch", "or"].join("");
-    return deriveDigest(`${salt}:${mapped.join(".")}:${pepper}`);
-  }
-
-  function isCorrectDate(day, month, year) {
-    const ref = decodeReferenceTuple();
-    return (
-      buildGateStamp(day, month, year) ===
-      buildGateStamp(ref.day, ref.month, ref.year)
-    );
-  }
-
-  function buildTicketChecksum(rawToken, expiresAt) {
-    const agentHint = (navigator.userAgent || "").slice(0, 80);
-    const secret = ["co", "met", "-", "veil"].join("");
-    return deriveDigest(`${rawToken}:${expiresAt}:${agentHint}:${secret}`);
-  }
-
-  function writeAccessTicket() {
-    const issuedAt = Date.now();
-    const expiresAt = issuedAt + ACCESS_TICKET_TTL_MS;
-    const rawToken =
-      `${issuedAt.toString(36)}.` +
-      Math.random().toString(36).slice(2) +
-      Math.random().toString(36).slice(2);
-
-    const ticket = {
-      token: rawToken,
-      expiresAt,
-      checksum: buildTicketChecksum(rawToken, expiresAt),
-    };
-
-    sessionStorage.setItem(ACCESS_TICKET_KEY, JSON.stringify(ticket));
-    return ticket;
-  }
-
-  function hasValidAccessTicket() {
-    const raw = sessionStorage.getItem(ACCESS_TICKET_KEY);
-    if (!raw) return false;
-
-    try {
-      const ticket = JSON.parse(raw);
-      if (!ticket || typeof ticket !== "object") return false;
-      if (
-        typeof ticket.token !== "string" ||
-        typeof ticket.checksum !== "string" ||
-        typeof ticket.expiresAt !== "number"
-      ) {
-        return false;
-      }
-      if (Date.now() > ticket.expiresAt) return false;
-
-      const expectedChecksum = buildTicketChecksum(
-        ticket.token,
-        ticket.expiresAt,
-      );
-      return expectedChecksum === ticket.checksum;
-    } catch {
-      return false;
-    }
-  }
-
-  function clearAccessTicket() {
-    sessionStorage.removeItem(ACCESS_TICKET_KEY);
-  }
-
-  function revealGateWithAuth() {
-    accessGate.classList.add("granted");
-    setTimeout(() => startIntroCountdown(), 1000);
-  }
-
-  function relockGate() {
-    clearAccessTicket();
-    accessGate.classList.remove("granted");
-  }
-
-  function initCustomSelect(selectEl) {
-    if (!selectEl) return;
-
-    const pickerGroup = selectEl.closest(".picker-group");
-    if (!pickerGroup) return;
-
-    selectEl.classList.add("native-select-hidden");
-
-    const trigger = document.createElement("button");
-    trigger.type = "button";
-    trigger.className = "custom-select-trigger";
-
-    const optionList = document.createElement("div");
-    optionList.className = "custom-select-list";
-
-    const options = Array.from(selectEl.options);
-    const optionButtons = [];
-
-    const updateTriggerText = () => {
-      const selectedOption =
-        selectEl.options[selectEl.selectedIndex] || options[0] || null;
-      trigger.textContent = selectedOption ? selectedOption.textContent : "";
-    };
-
-    const closeDropdown = () => {
-      pickerGroup.classList.remove("open");
-      trigger.setAttribute("aria-expanded", "false");
-    };
-
-    const openDropdown = () => {
-      pickerGroup.classList.add("open");
-      trigger.setAttribute("aria-expanded", "true");
-    };
-
-    const setActiveOption = () => {
-      optionButtons.forEach((btn) => {
-        const isActive = btn.dataset.value === selectEl.value;
-        btn.classList.toggle("active", isActive);
-      });
-    };
-
-    options.forEach((opt) => {
-      const optionBtn = document.createElement("button");
-      optionBtn.type = "button";
-      optionBtn.className = "custom-select-option";
-      optionBtn.textContent = opt.textContent;
-      optionBtn.dataset.value = opt.value;
-
-      if (opt.disabled) {
-        optionBtn.disabled = true;
-      }
-
-      optionBtn.addEventListener("click", () => {
-        if (opt.disabled) return;
-        selectEl.value = opt.value;
-        selectEl.dispatchEvent(new Event("change", { bubbles: true }));
-        updateTriggerText();
-        setActiveOption();
-        closeDropdown();
-      });
-
-      optionList.appendChild(optionBtn);
-      optionButtons.push(optionBtn);
-    });
-
-    trigger.setAttribute("aria-haspopup", "listbox");
-    trigger.setAttribute("aria-expanded", "false");
-    trigger.addEventListener("click", () => {
-      const isOpen = pickerGroup.classList.contains("open");
-      if (isOpen) {
-        closeDropdown();
-      } else {
-        openDropdown();
-      }
-    });
-
-    document.addEventListener("click", (event) => {
-      if (!pickerGroup.contains(event.target)) {
-        closeDropdown();
-      }
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closeDropdown();
-    });
-
-    pickerGroup.appendChild(trigger);
-    pickerGroup.appendChild(optionList);
-    updateTriggerText();
-    setActiveOption();
-  }
-
-  initCustomSelect(daySelect);
-  initCustomSelect(monthSelect);
-  initCustomSelect(yearSelect);
-
-  if (accessGate) {
-    if (hasValidAccessTicket()) {
-      revealGateWithAuth();
-    } else {
-      relockGate();
-    }
-
-    const gateObserver = new MutationObserver(() => {
-      if (accessGate.classList.contains("granted") && !hasValidAccessTicket()) {
-        accessMsg.textContent = "Unauthorized access blocked.";
-        accessMsg.className = "error";
-        accessGate.classList.remove("granted");
-      }
-    });
-
-    gateObserver.observe(accessGate, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-  }
-
-  if (accessSubmit) {
-    accessSubmit.addEventListener("click", () => {
-      const now = Date.now();
-      if (now < nextAllowedAttemptAt) {
-        const waitMs = nextAllowedAttemptAt - now;
-        const waitSec = Math.max(1, Math.ceil(waitMs / 1000));
-        accessMsg.textContent = `Try again in ${waitSec}s.`;
-        accessMsg.className = "error";
-        return;
-      }
-
-      const d = daySelect.value;
-      const m = monthSelect.value;
-      const y = yearSelect.value;
-
-      if (!d || !m || !y) {
-        accessMsg.textContent =
-          "Sobgula to select koro, naile kivabe verify korbo?!";
-        accessMsg.className = "error";
-        return;
-      }
-
-      if (isCorrectDate(d, m, y)) {
-        accessMsg.textContent = "Correct answer! Jak Mone Ache tomar!!";
-        accessMsg.className = "success";
-        failedAttempts = 0;
-        nextAllowedAttemptAt = 0;
-        writeAccessTicket();
-
-        setTimeout(() => {
-          revealGateWithAuth();
-        }, 1000);
-      } else {
-        accessMsg.textContent = "Tumi TANJILA NA !! Othoba Vule gecho :) ";
-        accessMsg.className = "error";
-        failedAttempts += 1;
-        const cooldownMs = Math.min(
-          6000,
-          500 * 2 ** Math.min(failedAttempts, 4),
-        );
-        nextAllowedAttemptAt = Date.now() + cooldownMs;
-        setTimeout(() => accessMsg.classList.remove("error"), 500);
-        void accessMsg.offsetWidth;
-        accessMsg.classList.add("error");
-      }
-    });
-  }
   const overlay = document.getElementById("intro-overlay");
   const instruction = document.getElementById("intro-instruction");
   const countdownEl = document.getElementById("countdown");
@@ -510,7 +216,6 @@ window.onload = () => {
   const BGM_BASE_VOLUME = 0.5;
   let bgmVolumeTweenFrame = 0;
   let bgmRetryArmed = false;
-  let bgmStartPromise = null;
 
   if (bgm) {
     bgm.preload = "auto";
@@ -584,7 +289,6 @@ window.onload = () => {
 
   function startBgmPlayback() {
     if (!bgm) return Promise.resolve(false);
-    if (bgmStartPromise) return bgmStartPromise;
 
     bgm.loop = true;
     bgm.preload = "auto";
@@ -595,53 +299,19 @@ window.onload = () => {
       return Promise.resolve(true);
     }
 
-    bgm.volume = 0;
     bgm.muted = false;
+    bgm.volume = BGM_BASE_VOLUME;
     const playAttempt = bgm.play();
 
     if (!playAttempt || typeof playAttempt.then !== "function") {
-      smoothBgmVolume(BGM_BASE_VOLUME, 900);
       return Promise.resolve(true);
     }
 
-    bgmStartPromise = playAttempt
-      .then(() => {
-        smoothBgmVolume(BGM_BASE_VOLUME, 900);
-        return true;
-      })
-      .catch((primaryErr) => {
-        // Some browsers allow muted play in the same user gesture where unmuted play fails.
-        bgm.volume = 0;
-        bgm.muted = true;
-        const mutedAttempt = bgm.play();
-
-        if (!mutedAttempt || typeof mutedAttempt.then !== "function") {
-          bgm.muted = false;
-          smoothBgmVolume(BGM_BASE_VOLUME, 900);
-          return true;
-        }
-
-        return mutedAttempt
-          .then(() => {
-            bgm.muted = false;
-            smoothBgmVolume(BGM_BASE_VOLUME, 900);
-            return true;
-          })
-          .catch((fallbackErr) => {
-            smoothBgmVolume(0, 120);
-            armBgmRetryOnNextInteraction();
-            console.log("Audio playback blocked by browser policies:", {
-              primaryErr,
-              fallbackErr,
-            });
-            return false;
-          });
-      })
-      .finally(() => {
-        bgmStartPromise = null;
-      });
-
-    return bgmStartPromise;
+    return playAttempt.catch((err) => {
+      armBgmRetryOnNextInteraction();
+      console.log("Audio playback blocked by browser policies:", err);
+      return false;
+    });
   }
 
   startIntroCountdown = () => {
@@ -668,9 +338,7 @@ window.onload = () => {
       }
     }, 1000);
   };
-  if (!accessGate || hasValidAccessTicket()) {
-    startIntroCountdown();
-  }
+  startIntroCountdown();
 
   const mobileBirthdayMedia = window.matchMedia("(max-width: 430px)");
 
@@ -733,27 +401,7 @@ window.onload = () => {
     }, 4000);
   }
 
-  function triggerBgmFromButtonGesture(event) {
-    if (
-      event.type === "keydown" &&
-      event.key !== "Enter" &&
-      event.key !== " "
-    ) {
-      return;
-    }
-
-    // Early gesture hook improves autoplay-policy reliability on mobile browsers.
-    void startBgmPlayback();
-  }
-
   if (blowBtn) {
-    blowBtn.addEventListener("pointerdown", triggerBgmFromButtonGesture, {
-      passive: true,
-    });
-    blowBtn.addEventListener("touchstart", triggerBgmFromButtonGesture, {
-      passive: true,
-    });
-    blowBtn.addEventListener("keydown", triggerBgmFromButtonGesture);
     blowBtn.addEventListener("click", triggerBlowSequence);
   }
   const giftBox = document.querySelector(".gift-box");
