@@ -199,6 +199,21 @@ class CosmosApp {
   }
 }
 window.onload = () => {
+  const fallbackImageSrc = "images/pic1.jpg";
+  document.addEventListener(
+    "error",
+    (event) => {
+      const target = event.target;
+      if (!target || target.tagName !== "IMG") return;
+      if (target.dataset.fallbackApplied === "1") return;
+      if (target.src && target.src.includes(fallbackImageSrc)) return;
+
+      target.dataset.fallbackApplied = "1";
+      target.src = fallbackImageSrc;
+    },
+    true,
+  );
+
   const app = new CosmosApp();
   let startIntroCountdown = () => {};
   const overlay = document.getElementById("intro-overlay");
@@ -1056,7 +1071,7 @@ window.onload = () => {
 
     const items = [
       {
-        src: "images/img3.jpeg",
+        src: "images/pic1.jpg",
         alt: "A sweet memory of us together",
         title: "Chotto Dingulo",
         text: "Tomar chotobelar ekta pic diye dilam. Jodio khub beshi nei. Etai amar kache onk valo legeche.",
@@ -1065,7 +1080,7 @@ window.onload = () => {
         y: -10,
       },
       {
-        src: "images/pic5.jpg",
+        src: "images/pic1.jpg",
         alt: "A precious smile from our journey",
         title: "Amar favourite pic",
         text: "Onk lomba somoy dhore amar favourite chobi chilo eta. Kothao dawat khete giye tulechile. Ami dekhe eto boro crush kheychilam je ami eta amar button phone er wallpaper kore rekhechilam.",
@@ -1074,7 +1089,7 @@ window.onload = () => {
         y: 15,
       },
       {
-        src: "images/pic6.jpg",
+        src: "images/pic1.jpg",
         alt: "A memory where we looked happiest",
         title: "Brightest smile",
         text: "Etao amar onk favourite ekta pic. Tomar hasi tai amar kache onk beshi pochonder. Just etar jonnoi eto kosto kora. Jodio hoyto ulta e hobe. Ei pic ta eto valo legechilo je etar 4 ta edit kora pic ache amar kace.",
@@ -1083,7 +1098,7 @@ window.onload = () => {
         y: 30,
       },
       {
-        src: "images/pic7.jpg",
+        src: "images/pic1.jpg",
         alt: "A shared moment from our love story",
         title: "Master Tanjila",
         text: "Dekhe ekdom teacher teacher lage. Future e teacher hote paro. Kintu tumi teacher hole student der kopal e dukkho ache. Tomar rag uthle dekhba student der emon obostha korba cintai korte pari na.. Heeeh",
@@ -1092,7 +1107,7 @@ window.onload = () => {
         y: 10,
       },
       {
-        src: "images/collage.jpg",
+        src: "images/pic1.jpg",
         alt: "A precious smile from our journey",
         title: "Janina ki korci",
         text: "Gotokal theke tana bug fix notun jinis add soho koto kicu korchi. Akhon ei gallery section e notun kore cinta kore add korar moto poristiti e nei. Tai eta add korlam. Eta hocche jei nebula pichone dekhco setar jonmo theke final rup e asar golpo. 1st e oi nil alo chilo just. pore prithibir texture diye dekhlam valo lage na. Pore are 2 ta color diye finally pink ta rakhchi.",
@@ -1101,7 +1116,7 @@ window.onload = () => {
         y: -5,
       },
       {
-        src: "images/img4.png",
+        src: "images/pic1.jpg",
         alt: "Another chapter of our shared memories",
         title: "A gift for you",
         text: "FIrst e gift Section emon chilo. Design valo lageni. ONK change korci even tomakeo jigges korci. Ekta msg diye ar reply dawni tai msg delete kore diyechi. Sesh porjonto khub kharap legechilo tai okhane ar ami design korte na pere ekta gif bosiye diyechi jeta ekhon dekhte paccho.",
