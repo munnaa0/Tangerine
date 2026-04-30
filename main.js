@@ -199,302 +199,23 @@ class CosmosApp {
   }
 }
 window.onload = () => {
+  const fallbackImageSrc = "images/pic1.jpg";
+  document.addEventListener(
+    "error",
+    (event) => {
+      const target = event.target;
+      if (!target || target.tagName !== "IMG") return;
+      if (target.dataset.fallbackApplied === "1") return;
+      if (target.src && target.src.includes(fallbackImageSrc)) return;
+
+      target.dataset.fallbackApplied = "1";
+      target.src = fallbackImageSrc;
+    },
+    true,
+  );
+
   const app = new CosmosApp();
-  const accessGate = document.getElementById("access-gate");
-  const accessSubmit = document.getElementById("access-submit");
-  const accessMsg = document.getElementById("access-msg");
-  const daySelect = document.getElementById("dob-day");
-  const monthSelect = document.getElementById("dob-month");
-  const yearSelect = document.getElementById("dob-year");
-  const ACCESS_TICKET_KEY = "mb_gate_ticket_v1";
-  const ACCESS_TICKET_TTL_MS = 1000 * 60 * 45;
-  let failedAttempts = 0;
-  let nextAllowedAttemptAt = 0;
   let startIntroCountdown = () => {};
-
-  function deriveDigest(input) {
-    let h1 = 0x811c9dc5;
-    let h2 = 0x1b873593;
-
-    for (let i = 0; i < input.length; i++) {
-      const code = input.charCodeAt(i);
-      h1 ^= code;
-      h1 = Math.imul(h1, 0x01000193);
-      h2 ^= code + i;
-      h2 = Math.imul(h2, 0x85ebca6b);
-    }
-
-    const part1 = (h1 >>> 0).toString(16).padStart(8, "0");
-    const part2 = (h2 >>> 0).toString(16).padStart(8, "0");
-    return part1 + part2;
-  }
-
-  function decodeReferenceTuple() {
-    const encoded = [49, 55, 130, 66, 136, 65, 66, 69, 74];
-    const raw = encoded
-      .map((value, index) => String.fromCharCode(value - index * 3))
-      .join("");
-    const [day, month, year] = raw.split("|");
-    return { day, month, year };
-  }
-
-  function buildGateStamp(day, month, year) {
-    const d = Number.parseInt(day, 10);
-    const m = Number.parseInt(month, 10);
-    const y = Number.parseInt(year, 10);
-
-    if (!Number.isInteger(d) || !Number.isInteger(m) || !Number.isInteger(y)) {
-      return "";
-    }
-
-    const mapped = [
-      (d * 13 + m * 17 + y * 19) % 997,
-      (d * d + m * 23 + y) % 991,
-      ((y % 100) * d + m * 31) % 983,
-      ((y >> 1) + d * 29 + m * 7) % 977,
-    ];
-
-    const salt = ["ne", "bu", "la", "-", "ve", "il"].join("");
-    const pepper = ["ly", "ra", "-", "an", "ch", "or"].join("");
-    return deriveDigest(`${salt}:${mapped.join(".")}:${pepper}`);
-  }
-
-  function isCorrectDate(day, month, year) {
-    const ref = decodeReferenceTuple();
-    return (
-      buildGateStamp(day, month, year) ===
-      buildGateStamp(ref.day, ref.month, ref.year)
-    );
-  }
-
-  function buildTicketChecksum(rawToken, expiresAt) {
-    const agentHint = (navigator.userAgent || "").slice(0, 80);
-    const secret = ["co", "met", "-", "veil"].join("");
-    return deriveDigest(`${rawToken}:${expiresAt}:${agentHint}:${secret}`);
-  }
-
-  function writeAccessTicket() {
-    const issuedAt = Date.now();
-    const expiresAt = issuedAt + ACCESS_TICKET_TTL_MS;
-    const rawToken =
-      `${issuedAt.toString(36)}.` +
-      Math.random().toString(36).slice(2) +
-      Math.random().toString(36).slice(2);
-
-    const ticket = {
-      token: rawToken,
-      expiresAt,
-      checksum: buildTicketChecksum(rawToken, expiresAt),
-    };
-
-    sessionStorage.setItem(ACCESS_TICKET_KEY, JSON.stringify(ticket));
-    return ticket;
-  }
-
-  function hasValidAccessTicket() {
-    const raw = sessionStorage.getItem(ACCESS_TICKET_KEY);
-    if (!raw) return false;
-
-    try {
-      const ticket = JSON.parse(raw);
-      if (!ticket || typeof ticket !== "object") return false;
-      if (
-        typeof ticket.token !== "string" ||
-        typeof ticket.checksum !== "string" ||
-        typeof ticket.expiresAt !== "number"
-      ) {
-        return false;
-      }
-      if (Date.now() > ticket.expiresAt) return false;
-
-      const expectedChecksum = buildTicketChecksum(
-        ticket.token,
-        ticket.expiresAt,
-      );
-      return expectedChecksum === ticket.checksum;
-    } catch {
-      return false;
-    }
-  }
-
-  function clearAccessTicket() {
-    sessionStorage.removeItem(ACCESS_TICKET_KEY);
-  }
-
-  function revealGateWithAuth() {
-    accessGate.classList.add("granted");
-    setTimeout(() => startIntroCountdown(), 1000);
-  }
-
-  function relockGate() {
-    clearAccessTicket();
-    accessGate.classList.remove("granted");
-  }
-
-  function initCustomSelect(selectEl) {
-    if (!selectEl) return;
-
-    const pickerGroup = selectEl.closest(".picker-group");
-    if (!pickerGroup) return;
-
-    selectEl.classList.add("native-select-hidden");
-
-    const trigger = document.createElement("button");
-    trigger.type = "button";
-    trigger.className = "custom-select-trigger";
-
-    const optionList = document.createElement("div");
-    optionList.className = "custom-select-list";
-
-    const options = Array.from(selectEl.options);
-    const optionButtons = [];
-
-    const updateTriggerText = () => {
-      const selectedOption =
-        selectEl.options[selectEl.selectedIndex] || options[0] || null;
-      trigger.textContent = selectedOption ? selectedOption.textContent : "";
-    };
-
-    const closeDropdown = () => {
-      pickerGroup.classList.remove("open");
-      trigger.setAttribute("aria-expanded", "false");
-    };
-
-    const openDropdown = () => {
-      pickerGroup.classList.add("open");
-      trigger.setAttribute("aria-expanded", "true");
-    };
-
-    const setActiveOption = () => {
-      optionButtons.forEach((btn) => {
-        const isActive = btn.dataset.value === selectEl.value;
-        btn.classList.toggle("active", isActive);
-      });
-    };
-
-    options.forEach((opt) => {
-      const optionBtn = document.createElement("button");
-      optionBtn.type = "button";
-      optionBtn.className = "custom-select-option";
-      optionBtn.textContent = opt.textContent;
-      optionBtn.dataset.value = opt.value;
-
-      if (opt.disabled) {
-        optionBtn.disabled = true;
-      }
-
-      optionBtn.addEventListener("click", () => {
-        if (opt.disabled) return;
-        selectEl.value = opt.value;
-        selectEl.dispatchEvent(new Event("change", { bubbles: true }));
-        updateTriggerText();
-        setActiveOption();
-        closeDropdown();
-      });
-
-      optionList.appendChild(optionBtn);
-      optionButtons.push(optionBtn);
-    });
-
-    trigger.setAttribute("aria-haspopup", "listbox");
-    trigger.setAttribute("aria-expanded", "false");
-    trigger.addEventListener("click", () => {
-      const isOpen = pickerGroup.classList.contains("open");
-      if (isOpen) {
-        closeDropdown();
-      } else {
-        openDropdown();
-      }
-    });
-
-    document.addEventListener("click", (event) => {
-      if (!pickerGroup.contains(event.target)) {
-        closeDropdown();
-      }
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closeDropdown();
-    });
-
-    pickerGroup.appendChild(trigger);
-    pickerGroup.appendChild(optionList);
-    updateTriggerText();
-    setActiveOption();
-  }
-
-  initCustomSelect(daySelect);
-  initCustomSelect(monthSelect);
-  initCustomSelect(yearSelect);
-
-  if (accessGate) {
-    if (hasValidAccessTicket()) {
-      revealGateWithAuth();
-    } else {
-      relockGate();
-    }
-
-    const gateObserver = new MutationObserver(() => {
-      if (accessGate.classList.contains("granted") && !hasValidAccessTicket()) {
-        accessMsg.textContent = "Unauthorized access blocked.";
-        accessMsg.className = "error";
-        accessGate.classList.remove("granted");
-      }
-    });
-
-    gateObserver.observe(accessGate, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-  }
-
-  if (accessSubmit) {
-    accessSubmit.addEventListener("click", () => {
-      const now = Date.now();
-      if (now < nextAllowedAttemptAt) {
-        const waitMs = nextAllowedAttemptAt - now;
-        const waitSec = Math.max(1, Math.ceil(waitMs / 1000));
-        accessMsg.textContent = `Try again in ${waitSec}s.`;
-        accessMsg.className = "error";
-        return;
-      }
-
-      const d = daySelect.value;
-      const m = monthSelect.value;
-      const y = yearSelect.value;
-
-      if (!d || !m || !y) {
-        accessMsg.textContent =
-          "Sobgula to select koro, naile kivabe verify korbo?!";
-        accessMsg.className = "error";
-        return;
-      }
-
-      if (isCorrectDate(d, m, y)) {
-        accessMsg.textContent = "Correct answer! Jak Mone Ache tomar!!";
-        accessMsg.className = "success";
-        failedAttempts = 0;
-        nextAllowedAttemptAt = 0;
-        writeAccessTicket();
-
-        setTimeout(() => {
-          revealGateWithAuth();
-        }, 1000);
-      } else {
-        accessMsg.textContent = "Tumi TANJILA NA !! Othoba Vule gecho :) ";
-        accessMsg.className = "error";
-        failedAttempts += 1;
-        const cooldownMs = Math.min(
-          6000,
-          500 * 2 ** Math.min(failedAttempts, 4),
-        );
-        nextAllowedAttemptAt = Date.now() + cooldownMs;
-        setTimeout(() => accessMsg.classList.remove("error"), 500);
-        void accessMsg.offsetWidth;
-        accessMsg.classList.add("error");
-      }
-    });
-  }
   const overlay = document.getElementById("intro-overlay");
   const instruction = document.getElementById("intro-instruction");
   const countdownEl = document.getElementById("countdown");
@@ -507,6 +228,106 @@ window.onload = () => {
     ? birthdayText.textContent.trim()
     : "";
   let introCountdownStarted = false;
+  const BGM_BASE_VOLUME = 0.5;
+  let bgmVolumeTweenFrame = 0;
+  let bgmRetryArmed = false;
+
+  if (bgm) {
+    bgm.preload = "auto";
+    // Preload early so playback can start immediately on candle click.
+    bgm.load();
+    bgm.loop = true;
+    bgm.muted = false;
+    bgm.volume = BGM_BASE_VOLUME;
+  }
+
+  function smoothBgmVolume(targetVolume, durationMs = 320) {
+    if (!bgm) return;
+
+    const clampedTarget = Math.max(0, Math.min(1, targetVolume));
+
+    if (bgmVolumeTweenFrame) {
+      cancelAnimationFrame(bgmVolumeTweenFrame);
+      bgmVolumeTweenFrame = 0;
+    }
+
+    if (!Number.isFinite(durationMs) || durationMs <= 0) {
+      bgm.volume = clampedTarget;
+      return;
+    }
+
+    const startVolume = Number.isFinite(bgm.volume)
+      ? bgm.volume
+      : clampedTarget;
+    const delta = clampedTarget - startVolume;
+
+    if (Math.abs(delta) < 0.005) {
+      bgm.volume = clampedTarget;
+      return;
+    }
+
+    const startTime = performance.now();
+    const step = (now) => {
+      const progress = Math.min(1, (now - startTime) / durationMs);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      bgm.volume = startVolume + delta * eased;
+
+      if (progress < 1) {
+        bgmVolumeTweenFrame = requestAnimationFrame(step);
+      } else {
+        bgm.volume = clampedTarget;
+        bgmVolumeTweenFrame = 0;
+      }
+    };
+
+    bgmVolumeTweenFrame = requestAnimationFrame(step);
+  }
+
+  function armBgmRetryOnNextInteraction() {
+    if (bgmRetryArmed) return;
+    bgmRetryArmed = true;
+
+    const retry = () => {
+      document.removeEventListener("pointerdown", retry);
+      document.removeEventListener("keydown", retry);
+      document.removeEventListener("click", retry);
+      document.removeEventListener("touchend", retry);
+      bgmRetryArmed = false;
+      void startBgmPlayback();
+    };
+
+    document.addEventListener("pointerdown", retry, { once: true });
+    document.addEventListener("keydown", retry, { once: true });
+    document.addEventListener("click", retry, { once: true });
+    document.addEventListener("touchend", retry, { once: true, passive: true });
+  }
+
+  function startBgmPlayback() {
+    if (!bgm) return Promise.resolve(false);
+
+    bgm.loop = true;
+    bgm.preload = "auto";
+
+    if (!bgm.paused) {
+      bgm.muted = false;
+      smoothBgmVolume(BGM_BASE_VOLUME, 300);
+      return Promise.resolve(true);
+    }
+
+    bgm.muted = false;
+    bgm.volume = BGM_BASE_VOLUME;
+    const playAttempt = bgm.play();
+
+    if (!playAttempt || typeof playAttempt.then !== "function") {
+      return Promise.resolve(true);
+    }
+
+    return playAttempt.catch((err) => {
+      armBgmRetryOnNextInteraction();
+      console.log("Audio playback blocked by browser policies:", err);
+      return false;
+    });
+  }
 
   startIntroCountdown = () => {
     if (introCountdownStarted) return;
@@ -532,9 +353,7 @@ window.onload = () => {
       }
     }, 1000);
   };
-  if (!accessGate || hasValidAccessTicket()) {
-    startIntroCountdown();
-  }
+  startIntroCountdown();
 
   const mobileBirthdayMedia = window.matchMedia("(max-width: 430px)");
 
@@ -571,31 +390,14 @@ window.onload = () => {
     mobileBirthdayMedia.addListener(formatBirthdayTextForViewport);
   }
   function triggerBlowSequence() {
+    // Keep this as the first action to preserve user-activation context.
+    void startBgmPlayback();
+
     app.startCosmicMotion();
 
     blowBtn.style.display = "none";
     candlePrompt.style.transition = "opacity 0.4s";
     candlePrompt.style.opacity = "0";
-    if (bgm) {
-      bgm.volume = 0;
-      bgm.loop = true;
-      bgm
-        .play()
-        .then(() => {
-          let vol = 0;
-          const fadeAudio = setInterval(() => {
-            if (vol < 0.5) {
-              vol += 0.05;
-              bgm.volume = Math.min(vol, 0.5);
-            } else {
-              clearInterval(fadeAudio);
-            }
-          }, 200);
-        })
-        .catch((err) =>
-          console.log("Audio playback blocked by browser policies:", err),
-        );
-    }
     candleWrapper.classList.add("hidden");
     overlay.classList.add("fade-bg");
     overlay.style.backgroundColor = "transparent";
@@ -611,10 +413,12 @@ window.onload = () => {
         const scrollWrapper = document.getElementById("scroll-wrapper");
         if (scrollWrapper) scrollWrapper.classList.add("visible");
       }, 1600);
-    }, 4500);
+    }, 4000);
   }
 
-  blowBtn.addEventListener("click", triggerBlowSequence);
+  if (blowBtn) {
+    blowBtn.addEventListener("click", triggerBlowSequence);
+  }
   const giftBox = document.querySelector(".gift-box");
   const giftBoxWrapper = document.querySelector(".gift-box-wrapper");
   const giftMsg = document.querySelector(".gift-message");
@@ -1085,6 +889,7 @@ window.onload = () => {
     const scrollWrapper = document.getElementById("scroll-wrapper");
     const storyItems = document.querySelectorAll(".story-item");
     const storyCards = document.querySelectorAll(".story-card");
+
     function runTypewriter(dateEl) {
       if (!dateEl || dateEl.dataset.twDone) return;
       dateEl.dataset.twDone = "1";
@@ -1268,8 +1073,8 @@ window.onload = () => {
       {
         src: "images/pic1.jpg",
         alt: "A sweet memory of us together",
-        title: "Soft Beginnings",
-        text: "The night felt quieter, but my heart felt louder with you.",
+        title: "Chotto Dingulo",
+        text: "Tomar chotobelar ekta pic diye dilam. Jodio khub beshi nei. Etai amar kache onk valo legeche.",
         r: -8,
         x: -15,
         y: -10,
@@ -1277,8 +1082,8 @@ window.onload = () => {
       {
         src: "images/pic1.jpg",
         alt: "A precious smile from our journey",
-        title: "Held In Light",
-        text: "You smiled once, and the whole evening turned golden.",
+        title: "Amar favourite pic",
+        text: "Onk lomba somoy dhore amar favourite chobi chilo eta. Kothao dawat khete giye tulechile. Ami dekhe eto boro crush kheychilam je ami eta amar button phone er wallpaper kore rekhechilam.",
         r: 6,
         x: 10,
         y: 15,
@@ -1286,8 +1091,8 @@ window.onload = () => {
       {
         src: "images/pic1.jpg",
         alt: "A memory where we looked happiest",
-        title: "Near, Even Far",
-        text: "Distance kept our hands apart, never our souls.",
+        title: "Brightest smile",
+        text: "Etao amar onk favourite ekta pic. Tomar hasi tai amar kache onk beshi pochonder. Just etar jonnoi eto kosto kora. Jodio hoyto ulta e hobe. Ei pic ta eto valo legechilo je etar 4 ta edit kora pic ache amar kace.",
         r: -4,
         x: 5,
         y: 30,
@@ -1295,17 +1100,17 @@ window.onload = () => {
       {
         src: "images/pic1.jpg",
         alt: "A shared moment from our love story",
-        title: "Quiet Magic",
-        text: "In the smallest moments, you always feel like home.",
+        title: "Master Tanjila",
+        text: "Dekhe ekdom teacher teacher lage. Future e teacher hote paro. Kintu tumi teacher hole student der kopal e dukkho ache. Tomar rag uthle dekhba student der emon obostha korba cintai korte pari na.. Heeeh",
         r: 7,
         x: -10,
         y: 10,
       },
       {
         src: "images/pic1.jpg",
-        alt: "A warm photo from one of our beautiful days",
-        title: "Golden Hour Us",
-        text: "Time slows down whenever your eyes find mine.",
+        alt: "A precious smile from our journey",
+        title: "Janina ki korci",
+        text: "Gotokal theke tana bug fix notun jinis add soho koto kicu korchi. Akhon ei gallery section e notun kore cinta kore add korar moto poristiti e nei. Tai eta add korlam. Eta hocche jei nebula pichone dekhco setar jonmo theke final rup e asar golpo. 1st e oi nil alo chilo just. pore prithibir texture diye dekhlam valo lage na. Pore are 2 ta color diye finally pink ta rakhchi.",
         r: -12,
         x: 20,
         y: -5,
@@ -1313,8 +1118,8 @@ window.onload = () => {
       {
         src: "images/pic1.jpg",
         alt: "Another chapter of our shared memories",
-        title: "Still Choosing You",
-        text: "Every season changed, but my choice stayed the same.",
+        title: "A gift for you",
+        text: "FIrst e gift Section emon chilo. Design valo lageni. ONK change korci even tomakeo jigges korci. Ekta msg diye ar reply dawni tai msg delete kore diyechi. Sesh porjonto khub kharap legechilo tai okhane ar ami design korte na pere ekta gif bosiye diyechi jeta ekhon dekhte paccho.",
         r: 5,
         x: 0,
         y: -20,
