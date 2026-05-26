@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Happy Birthday Cutie</title>
-    <link rel="icon" type="image/png" href="images/icon.png" />
+    <title></title>
+    <link rel="icon" type="image/png" href="" id="favicon-link" />
     <link
       href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Lora:ital@1&display=swap"
       rel="stylesheet"
@@ -20,11 +20,11 @@
     </script>
   </head>
   <body>
-    <audio id="bgm" src="bgm.mp3" loop></audio>
+    <audio id="bgm" data-config-src="audio.bgmSrc" loop></audio>
     <div id="intro-overlay">
-      <h1 id="intro-instruction">Blow the candle</h1>
+      <h1 id="intro-instruction" data-config="intro.instruction"></h1>
       <div id="countdown">3</div>
-      <p id="candle-prompt">&#10024; Make a Wish! &#10024;</p>
+      <p id="candle-prompt" data-config="intro.candlePrompt"></p>
       <div class="candle-container" id="candle-wrapper">
         <div class="candle">
           <div class="flame"></div>
@@ -32,10 +32,8 @@
           <div class="wax"></div>
         </div>
       </div>
-      <button id="blow-candle-btn" aria-label="Blow the candle">
-        &#x1F382; Blow the Candle!
-      </button>
-      <h1 id="happy-birthday-text">Happy Birthday Tanjila!</h1>
+      <button id="blow-candle-btn" aria-label="Blow the candle" data-config="intro.blowButtonText"></button>
+      <h1 id="happy-birthday-text" data-config="intro.birthdayText"></h1>
     </div>
     <div id="scroll-wrapper">
       <div class="scroll-spacer">
@@ -46,7 +44,7 @@
       <!-- Section 1: The Gift -->
       <section class="gift-section" id="section-gift">
         <div class="gift-title-container">
-          <h2 class="gift-title">A Gift for My Cutie</h2>
+          <h2 class="gift-title" data-config="gift.title"></h2>
           <div class="gift-title-stars">
             <span>✦</span><span>✧</span><span>✦</span>
           </div>
@@ -91,21 +89,18 @@
                 </svg>
               </div>
               <img
-                src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbzFsaWNsNjR5c21wbWJuZnZzdGR5N2w4ZDBnazFlZWtiZGh2OTRpaCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/At48Y4dT3oDXx64KQj/giphy.gif"
+                data-config-src="gift.boxImageSrc"
                 alt="Gift Box"
                 class="gift-box-image"
               />
             </div>
-            <p class="gift-hint">Tap to open ✨</p>
+            <p class="gift-hint" data-config="gift.hint"></p>
             <div class="heart-burst" aria-hidden="true">
               <span></span><span></span><span></span><span></span><span></span>
               <span></span><span></span><span></span><span></span><span></span>
             </div>
           </div>
-          <div class="gift-message" aria-hidden="true">
-            Happy Birthday, Sweetie!💖 Today, the world celebrates you - but for
-            me, every single day with you is a celebration.
-          </div>
+          <div class="gift-message" aria-hidden="true" data-config="gift.message"></div>
         </div>
       </section>
       <!-- Section 2: Love Letter-->
@@ -131,7 +126,7 @@
                 d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
               ></path>
             </svg>
-            A Love Letter
+            <span data-config="letter.title">A Love Letter</span>
           </h2>
           <button
             id="wax-seal-btn"
@@ -155,12 +150,11 @@
                   font-size="45"
                   fill="#d4af37"
                   text-anchor="middle"
-                >
-                  T
-                </text>
+                  data-config="letter.sealLetter"
+                ></text>
               </svg>
             </div>
-            <span class="seal-text">Click to Open</span>
+            <span class="seal-text" data-config="letter.sealText">Click to Open</span>
           </button>
           <div class="letter-card locked" id="letter-card">
             <div class="card-border-glow"></div>
@@ -177,49 +171,7 @@
                 stroke-width="1"
               />
             </svg>
-            <div class="letter-content" id="letter-content-wrapper">
-              <p class="letter-greeting">Dear Love,</p>
-              <p class="letter-para">
-                I do not know how today feels for you, but for me it is a small
-                miracle. The day you arrived turned ordinary time into a story I
-                still reread.
-              </p>
-              <p class="letter-para">
-                I once imagined a neat little note with a list of reasons and
-                favorite moments. Then I realized you do not fit in a list, and
-                every attempt grew into a sky.
-              </p>
-              <p class="letter-para">
-                So I built this page as a thank you. I shaped it slowly, detail
-                by detail, because you deserve care that is patient and
-                deliberate.
-              </p>
-              <p class="letter-para">
-                Some days the energy faded, and I wondered if it would ever be
-                enough. Still, I kept going, because making this is how I say I
-                love you.
-              </p>
-              <p class="letter-para">
-                If you read this, I hope it feels like a quiet hug. If you do
-                not, the effort still means something to me, and I am glad I
-                tried.
-              </p>
-              <p class="letter-para">
-                There are many more stories I could tell and many more gifts I
-                want to give. This is only a small chapter, but it is written
-                with all the tenderness I have.
-              </p>
-              <p class="letter-para">
-                Happy birthday, my favorite person. May the year ahead be
-                gentle, brave, and bright. I love you today, tomorrow, and every
-                ordinary day in between.
-              </p>
-
-              <div class="letter-signoff-block">
-                <p class="letter-signoff">Forever yours,</p>
-                <p class="letter-signoff letter-name">Your stargazer</p>
-              </div>
-            </div>
+            <div class="letter-content" id="letter-content-wrapper"></div>
           </div>
         </div>
       </section>
@@ -241,10 +193,8 @@
           </defs>
         </svg>
         <div class="countdown-inner">
-          <h2 class="countdown-title">And I'd choose you in every lifetime</h2>
-          <p class="countdown-subtitle">
-            Time drifts so softly when love is the clock.
-          </p>
+          <h2 class="countdown-title" data-config="countdown.title"></h2>
+          <p class="countdown-subtitle" data-config="countdown.subtitle"></p>
           <div class="countdown-grid">
             <div class="countdown-card" data-unit="years" data-max="100">
               <div class="card-orbital">
@@ -259,7 +209,7 @@
                   <span class="countdown-value" id="cd-years">0</span>
                 </div>
               </div>
-              <span class="countdown-label">Years</span>
+              <span class="countdown-label" data-config="countdown.labels.years"></span>
             </div>
             <div class="countdown-card" data-unit="months" data-max="12">
               <div class="card-orbital">
@@ -274,7 +224,7 @@
                   <span class="countdown-value" id="cd-months">0</span>
                 </div>
               </div>
-              <span class="countdown-label">Months</span>
+              <span class="countdown-label" data-config="countdown.labels.months"></span>
             </div>
             <div class="countdown-card" data-unit="days" data-max="31">
               <div class="card-orbital">
@@ -289,7 +239,7 @@
                   <span class="countdown-value" id="cd-days">0</span>
                 </div>
               </div>
-              <span class="countdown-label">Days</span>
+              <span class="countdown-label" data-config="countdown.labels.days"></span>
             </div>
             <div class="countdown-card" data-unit="hours" data-max="24">
               <div class="card-orbital">
@@ -304,7 +254,7 @@
                   <span class="countdown-value" id="cd-hours">0</span>
                 </div>
               </div>
-              <span class="countdown-label">Hours</span>
+              <span class="countdown-label" data-config="countdown.labels.hours"></span>
             </div>
             <div class="countdown-card" data-unit="minutes" data-max="60">
               <div class="card-orbital">
@@ -319,7 +269,7 @@
                   <span class="countdown-value" id="cd-minutes">0</span>
                 </div>
               </div>
-              <span class="countdown-label">Minutes</span>
+              <span class="countdown-label" data-config="countdown.labels.minutes"></span>
             </div>
             <div class="countdown-card" data-unit="seconds" data-max="60">
               <div class="card-orbital">
@@ -334,7 +284,7 @@
                   <span class="countdown-value" id="cd-seconds">0</span>
                 </div>
               </div>
-              <span class="countdown-label">Seconds</span>
+              <span class="countdown-label" data-config="countdown.labels.seconds"></span>
             </div>
           </div>
           <div
@@ -347,7 +297,7 @@
           <div class="story-footer-stars">
             <span></span><span></span><span></span><span></span><span></span>
           </div>
-          <p class="story-footer-text">Many more years wait for us.</p>
+          <p class="story-footer-text" data-config="countdown.footerText"></p>
         </div>
       </section>
       <!-- Section 4: Our Story-->
@@ -378,11 +328,8 @@
                 />
               </svg>
             </div>
-            <h2 class="story-title">Our Story</h2>
-            <p class="story-subtitle">
-              I was not sure about adding photos, but this little timeline
-              deserved a few stars. Think of it as a tiny gallery of moments.
-            </p>
+            <h2 class="story-title" data-config="story.title"></h2>
+            <p class="story-subtitle" data-config="story.subtitle"></p>
           </div>
 
           <div class="story-timeline" id="story-timeline">
@@ -391,395 +338,13 @@
               <div class="story-tl-line-comet" id="story-line-comet"></div>
             </div>
 
-            <div class="story-item story-item--left" data-story-idx="0">
-              <div class="story-card-wrap">
-                <div class="story-orb-ring" aria-hidden="true">
-                  <span class="story-orb story-orb-a"></span>
-                  <span class="story-orb story-orb-b"></span>
-                </div>
-
-                <div
-                  class="story-card"
-                  tabindex="0"
-                  role="button"
-                  aria-label="January 24, 2018 - Where It All Began. Hover or press Enter to flip."
-                >
-                  <div class="story-card-inner">
-                    <div class="story-card-front">
-                      <figure class="story-card-photo">
-                        <img
-                          src="images/pic1.jpg"
-                          alt="January 24, 2018 – our beginning"
-                          class="story-card-img"
-                        />
-                      </figure>
-                      <div class="story-date-wrap">
-                        <span class="story-date-icon">💫</span>
-
-                        <time
-                          class="story-date"
-                          data-tw="January 24, 2018"
-                        ></time>
-                      </div>
-                      <h3 class="story-event-title">Where It All Began</h3>
-                      <p class="story-desc">
-                        The first day felt small, but it opened a whole horizon.
-                        A glance, a laugh, and suddenly I knew the story had
-                        started.
-                      </p>
-                      <span class="story-flip-hint" aria-hidden="true"
-                        >hover to flip ✨</span
-                      >
-                    </div>
-                    <div class="story-card-back" aria-hidden="true">
-                      <figure class="story-cb-gif-wrap">
-                        <img
-                          src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYnh5ZGVtdWZqYzdyZzgzcDRkbXFuMnl2bjJkc29hN3ZjdjF0b2s1MSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/G6N0pDDgDpLjUvNoyQ/giphy.gif"
-                          alt="memory gif"
-                          class="story-cb-gif"
-                        />
-                      </figure>
-                      <p class="story-cb-msg">
-                        Thank you for walking into my life. Those early days
-                        were simple and bright, full of long walks and stories
-                        that made the ride feel short.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="story-item-ptcl" aria-hidden="true"></div>
-              </div>
-              <div class="story-node" aria-hidden="true">
-                <div class="story-node-ring"></div>
-                <div class="story-node-pulse"></div>
-                <div class="story-node-core">💫</div>
-              </div>
-              <div class="story-spacer"></div>
-            </div>
-
-            <div class="story-item story-item--right" data-story-idx="1">
-              <div class="story-spacer"></div>
-              <div class="story-node" aria-hidden="true">
-                <div class="story-node-ring"></div>
-                <div class="story-node-pulse"></div>
-                <div class="story-node-core">🌙</div>
-              </div>
-              <div class="story-card-wrap">
-                <div class="story-orb-ring" aria-hidden="true">
-                  <span class="story-orb story-orb-a"></span>
-                  <span class="story-orb story-orb-b"></span>
-                </div>
-                <div
-                  class="story-card"
-                  tabindex="0"
-                  role="button"
-                  aria-label="Mid 2019 - Finally Together. Hover or press Enter to flip."
-                >
-                  <div class="story-card-inner">
-                    <div class="story-card-front">
-                      <figure class="story-card-photo">
-                        <img
-                          src="images/pic1.jpg"
-                          alt="Mid 2019 – finally together"
-                          class="story-card-img"
-                        />
-                      </figure>
-                      <div class="story-date-wrap">
-                        <span class="story-date-icon">✨</span>
-                        <time class="story-date" data-tw="Mid 2019"></time>
-                      </div>
-                      <h3 class="story-event-title">Finally Together</h3>
-                      <p class="story-desc">
-                        We found our way back to each other, and the city felt
-                        warmer. A simple meal tasted like a festival because you
-                        were there.
-                      </p>
-                      <span class="story-flip-hint" aria-hidden="true"
-                        >hover to flip ✨</span
-                      >
-                    </div>
-                    <div class="story-card-back" aria-hidden="true">
-                      <figure class="story-cb-gif-wrap">
-                        <img
-                          src="images/pic1.jpg"
-                          alt="memory gif"
-                          class="story-cb-gif"
-                        />
-                      </figure>
-                      <p class="story-cb-msg">
-                        I still remember the shy smiles and the way time slowed
-                        down. Even ordinary corners felt magical with you beside
-                        me.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div class="story-item-ptcl" aria-hidden="true"></div>
-              </div>
-            </div>
-
-            <div class="story-item story-item--left" data-story-idx="2">
-              <div class="story-card-wrap">
-                <div class="story-orb-ring" aria-hidden="true">
-                  <span class="story-orb story-orb-a"></span>
-                  <span class="story-orb story-orb-b"></span>
-                </div>
-                <div
-                  class="story-card"
-                  tabindex="0"
-                  role="button"
-                  aria-label="2019 to 2021 - Our Golden Days. Hover or press Enter to flip."
-                >
-                  <div class="story-card-inner">
-                    <div class="story-card-front">
-                      <figure class="story-card-photo">
-                        <img
-                          src="images/pic1.jpg"
-                          alt="2019–2021 – our golden days"
-                          class="story-card-img"
-                        />
-                      </figure>
-                      <div class="story-date-wrap">
-                        <span class="story-date-icon">☀️</span>
-                        <time class="story-date" data-tw="2019 – 2021"></time>
-                      </div>
-                      <h3 class="story-event-title">Golden Days</h3>
-                      <p class="story-desc">
-                        Sneaking in small meetups, saving coins, and sharing one
-                        drink for an hour. It was never about the place, only
-                        about us.
-                      </p>
-                      <span class="story-flip-hint" aria-hidden="true"
-                        >hover to flip ✨</span
-                      >
-                    </div>
-                    <div class="story-card-back" aria-hidden="true">
-                      <figure class="story-cb-gif-wrap">
-                        <img
-                          src="images/pic1.jpg"
-                          alt="memory gif"
-                          class="story-cb-gif"
-                        />
-                      </figure>
-                      <p class="story-cb-msg">
-                        Those days taught me how rich simple moments can be. I
-                        keep them like pressed flowers in a book.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div class="story-item-ptcl" aria-hidden="true"></div>
-              </div>
-              <div class="story-node" aria-hidden="true">
-                <div class="story-node-ring"></div>
-                <div class="story-node-pulse"></div>
-                <div class="story-node-core">☀️</div>
-              </div>
-              <div class="story-spacer"></div>
-            </div>
-
-            <div class="story-item story-item--right" data-story-idx="3">
-              <div class="story-spacer"></div>
-              <div class="story-node" aria-hidden="true">
-                <div class="story-node-ring"></div>
-                <div class="story-node-pulse"></div>
-                <div class="story-node-core">🌊</div>
-              </div>
-              <div class="story-card-wrap">
-                <div class="story-orb-ring" aria-hidden="true">
-                  <span class="story-orb story-orb-a"></span>
-                  <span class="story-orb story-orb-b"></span>
-                </div>
-                <div
-                  class="story-card"
-                  tabindex="0"
-                  role="button"
-                  aria-label="2021 - Distance Again. Hover or press Enter to flip."
-                >
-                  <div class="story-card-inner">
-                    <div class="story-card-front">
-                      <figure class="story-card-photo">
-                        <img
-                          src="images/pic1.jpg"
-                          alt="2021 – distance again"
-                          class="story-card-img"
-                        />
-                      </figure>
-                      <div class="story-date-wrap">
-                        <span class="story-date-icon">🌌</span>
-                        <time class="story-date" data-tw="2021"></time>
-                      </div>
-                      <h3 class="story-event-title">Distance Again</h3>
-                      <p class="story-desc">
-                        Life pulled us to different cities, but the calls became
-                        our bridge. Some nights were hard, yet your voice
-                        steadied me.
-                      </p>
-                      <span class="story-flip-hint" aria-hidden="true"
-                        >hover to flip ✨</span
-                      >
-                    </div>
-                    <div class="story-card-back" aria-hidden="true">
-                      <figure class="story-cb-gif-wrap">
-                        <img
-                          src="images/pic1.jpg"
-                          alt="memory gif"
-                          class="story-cb-gif"
-                        />
-                      </figure>
-                      <p class="story-cb-msg">
-                        We learned patience, trust, and how to keep a flame
-                        alive across miles. That lesson still glows.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div class="story-item-ptcl" aria-hidden="true"></div>
-              </div>
-            </div>
-
-            <div class="story-item story-item--left" data-story-idx="4">
-              <div class="story-card-wrap">
-                <div class="story-orb-ring" aria-hidden="true">
-                  <span class="story-orb story-orb-a"></span>
-                  <span class="story-orb story-orb-b"></span>
-                </div>
-                <div
-                  class="story-card"
-                  tabindex="0"
-                  role="button"
-                  aria-label="August 15, 2024 - One Beautiful Day. Hover or press Enter to flip."
-                >
-                  <div class="story-card-inner">
-                    <div class="story-card-front">
-                      <figure class="story-card-photo">
-                        <img
-                          src="images/pic1.jpg"
-                          alt="August 15, 2024 – one beautiful day"
-                          class="story-card-img"
-                        />
-                      </figure>
-                      <div class="story-date-wrap">
-                        <span class="story-date-icon">🌹</span>
-                        <time
-                          class="story-date"
-                          data-tw="August 15, 2024"
-                        ></time>
-                      </div>
-                      <h3 class="story-event-title">One Beautiful Day</h3>
-                      <p class="story-desc">
-                        A surprise meeting, a rushed schedule, and a heart that
-                        refused to hurry. Even a short visit felt like a whole
-                        season.
-                      </p>
-                      <span class="story-flip-hint" aria-hidden="true"
-                        >hover to flip ✨</span
-                      >
-                    </div>
-                    <div class="story-card-back" aria-hidden="true">
-                      <figure class="story-cb-gif-wrap">
-                        <img
-                          src="images/pic1.jpg"
-                          alt="memory gif"
-                          class="story-cb-gif"
-                        />
-                      </figure>
-                      <p class="story-cb-msg">
-                        The photo from that day sits in my mind like a keepsake.
-                        I laugh every time I remember how we tried to steal a
-                        little more time.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div class="story-item-ptcl" aria-hidden="true"></div>
-              </div>
-              <div class="story-node" aria-hidden="true">
-                <div class="story-node-ring"></div>
-                <div class="story-node-pulse"></div>
-                <div class="story-node-core">🌹</div>
-              </div>
-              <div class="story-spacer"></div>
-            </div>
-
-            <div class="story-item story-item--right" data-story-idx="5">
-              <div class="story-spacer"></div>
-              <div class="story-node" aria-hidden="true">
-                <div class="story-node-ring"></div>
-                <div class="story-node-pulse"></div>
-                <div class="story-node-core">💖</div>
-              </div>
-              <div class="story-card-wrap">
-                <div class="story-orb-ring" aria-hidden="true">
-                  <span class="story-orb story-orb-a"></span>
-                  <span class="story-orb story-orb-b"></span>
-                </div>
-                <div
-                  class="story-card"
-                  tabindex="0"
-                  role="button"
-                  aria-label="Today - Still Completely in Love. Hover or press Enter to flip."
-                >
-                  <div class="story-card-inner">
-                    <div class="story-card-front">
-                      <figure class="story-card-photo">
-                        <img
-                          src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExeDNza3Zicmd4dGxnOXZ3bG1vMTJtbzNueXFobWk3dnY0ZWh4Y3c1MyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/dQMySCYUs2qO1CbxN3/giphy.gif"
-                          alt="Today – still completely in love"
-                          class="story-card-img"
-                        />
-                      </figure>
-                      <div class="story-date-wrap">
-                        <span class="story-date-icon">✨</span>
-                        <time class="story-date" data-tw="Today"></time>
-                      </div>
-                      <h3 class="story-event-title">
-                        Still Completely in Love
-                      </h3>
-                      <p class="story-desc">
-                        So much has changed, yet my love keeps growing. If I
-                        could, I would bottle every moment we share.
-                      </p>
-                      <span class="story-flip-hint" aria-hidden="true"
-                        >hover to flip ✨</span
-                      >
-                    </div>
-                    <div class="story-card-back" aria-hidden="true">
-                      <figure class="story-cb-gif-wrap">
-                        <img
-                          src="https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3aXo1ZmxlY2ZyNXlnbTM2Y3dydXl5NDljenVhMXIwaXAxMWUzczcyYyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/qPxBkcBiBr06eEnOup/giphy.gif"
-                          alt="memory gif"
-                          class="story-cb-gif"
-                        />
-                      </figure>
-                      <p class="story-cb-msg">
-                        Each card was meant to be short, but memories kept
-                        spilling over. I could keep writing, yet I will save
-                        some words for future pages. And if life gets loud,
-                        remember this:
-                        <span
-                          class="story-cb-msg-glitch"
-                          data-glitch="Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam incidunt eius dolore ad neque, officiis sint fugit laudantium mollitia dicta architecto soluta similique voluptatem aliquam repudiandae alias ullam minus numquam."
-                          >we will keep choosing each other, even on the hard
-                          days.</span
-                        >
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div class="story-item-ptcl" aria-hidden="true"></div>
-              </div>
-            </div>
           </div>
 
           <div class="story-footer" aria-hidden="true">
             <div class="story-footer-stars">
               <span></span><span></span><span></span><span></span><span></span>
             </div>
-            <p class="story-footer-text">
-              Written in the stars, sealed with love
-            </p>
+            <p class="story-footer-text" data-config="story.footerText"></p>
           </div>
         </div>
       </section>
@@ -794,7 +359,7 @@
         </div>
         <div class="gallery-header">
           <h2 class="gallery-title">
-            Star Gallery
+            <span data-config="gallery.title">Star Gallery</span>
 
             <svg
               class="gallery-icon"
@@ -813,10 +378,7 @@
               <circle cx="12" cy="13" r="4"></circle>
             </svg>
           </h2>
-          <p class="gallery-subtitle">
-            I wanted to fill this with our photos, but even the few we have feel
-            priceless.
-          </p>
+          <p class="gallery-subtitle" data-config="gallery.subtitle"></p>
         </div>
         <div class="gallery-inner">
           <div
@@ -864,7 +426,7 @@
 
         <div class="wish-header">
           <h2 class="wish-title">
-            Whisper to the Universe
+            <span data-config="wish.title">Whisper to the Universe</span>
             <svg
               class="wish-icon"
               viewBox="0 0 24 24"
@@ -881,10 +443,7 @@
               ></polygon>
             </svg>
           </h2>
-          <p class="wish-subtitle">
-            Make a wish and send it to the stars. I will be cheering for every
-            dream you whisper.
-          </p>
+          <p class="wish-subtitle" data-config="wish.subtitle"></p>
         </div>
 
         <div class="wish-container premium-glass">
@@ -895,13 +454,13 @@
             <div class="textarea-container">
               <textarea
                 id="wish-input"
-                placeholder="Type your wish here..."
+                data-config-placeholder="wish.placeholder"
               ></textarea>
               <div class="textarea-glow"></div>
             </div>
 
             <button id="wish-btn" class="cosmic-btn" aria-label="Send wish">
-              <span class="btn-text">Send to the Stars ✨</span>
+              <span class="btn-text" data-config="wish.buttonText">Send to the Stars ✨</span>
               <span class="btn-sparks"></span>
               <div class="btn-glow-layer"></div>
             </button>
@@ -910,20 +469,16 @@
 
         <div class="finale-section" id="section-finale">
           <div class="finale-content">
-            <p class="finale-text line-1">
-              This universe is wide and endless...
-            </p>
-            <p class="finale-text line-2">but its favorite corner, for me,</p>
-            <p class="finale-text line-3">is you</p>
-            <h1 class="finale-title">Happy Birthday, Tanjila</h1>
+            <p class="finale-text line-1" data-config="finale.line1"></p>
+            <p class="finale-text line-2" data-config="finale.line2"></p>
+            <p class="finale-text line-3" data-config="finale.line3"></p>
+            <h1 class="finale-title" data-config="finale.title"></h1>
             <div class="story-footer" aria-hidden="true">
               <div class="story-footer-stars">
                 <span></span><span></span><span></span><span></span
                 ><span></span>
               </div>
-              <p class="story-footer-text">
-                Made with all my heart, just for you
-              </p>
+              <p class="story-footer-text" data-config="finale.footerText"></p>
             </div>
           </div>
         </div>

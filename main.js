@@ -1,3 +1,4 @@
+import { siteConfig } from "./site-config.js";
 import * as THREE from "three";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
@@ -198,8 +199,174 @@ class CosmosApp {
     this.composer.render();
   }
 }
+function getConfigValue(path) {
+  const parts = path.split(".");
+  let val = siteConfig;
+  for (const p of parts) {
+    if (val == null) return "";
+    val = val[p];
+  }
+  return val ?? "";
+}
+
+function escAttr(s) {
+  if (typeof s !== "string") return "";
+  return s.replace(/&/g, "\x26amp;").replace(/"/g, "\x26quot;").replace(/</g, "\x26lt;").replace(/>/g, "\x26gt;");
+}
+
+function buildGlitchSpan(item) {
+  if (!item.glitchText) return "";
+  return '<span class="story-cb-msg-glitch" data-glitch="' +
+    escAttr(item.glitchText) +
+    '">' +
+    (item.backGlitchVisibleText || "") +
+    "</span>";
+}
+
+function buildStoryItem(item, idx) {
+  const isRight = item.side === "right";
+  const glitchSpan = buildGlitchSpan(item);
+  const backMsgText = item.backMessage || "";
+  const backMsgContent = glitchSpan
+    ? backMsgText + " " + glitchSpan
+    : backMsgText;
+
+  const nodeBlock =
+    '<div class="story-node" aria-hidden="true">' +
+    '<div class="story-node-ring"></div>' +
+    '<div class="story-node-pulse"></div>' +
+    '<div class="story-node-core">' + (item.nodeEmoji || "") + "</div>" +
+    "</div>";
+
+  const spacerBlock = '<div class="story-spacer"></div>';
+
+  const cardBlock =
+    '<div class="story-card-wrap">' +
+    '<div class="story-orb-ring" aria-hidden="true">' +
+    '<span class="story-orb story-orb-a"></span>' +
+    '<span class="story-orb story-orb-b"></span>' +
+    "</div>" +
+    '<div class="story-card" tabindex="0" role="button" aria-label="Flip card">' +
+    '<div class="story-card-inner">' +
+    '<div class="story-card-front">' +
+    '<figure class="story-card-photo">' +
+    '<img src="' + (item.imageSrc || "") + '" alt="Story photo" class="story-card-img" />' +
+    "</figure>" +
+    '<div class="story-date-wrap">' +
+    '<span class="story-date-icon">' + (item.dateIcon || "") + "</span>" +
+    '<time class="story-date" data-tw="' + escAttr(item.date || "") + '"></time>' +
+    "</div>" +
+    '<h3 class="story-event-title">' + (item.title || "") + "</h3>" +
+    '<p class="story-desc">' + (item.description || "") + "</p>" +
+    '<span class="story-flip-hint" aria-hidden="true">hover to flip ✨</span>' +
+    "</div>" +
+    '<div class="story-card-back" aria-hidden="true">' +
+    '<figure class="story-cb-gif-wrap">' +
+    '<img src="' + (item.backGifSrc || "") + '" alt="memory gif" class="story-cb-gif" />' +
+    "</figure>" +
+    '<p class="story-cb-msg">' + backMsgContent + "</p>" +
+    "</div>" +
+    "</div>" +
+    "</div>" +
+    '<div class="story-item-ptcl" aria-hidden="true"></div>' +
+    "</div>";
+
+  if (isRight) {
+    return '<div class="story-item story-item--right" data-story-idx="' + idx + '">' +
+      spacerBlock + nodeBlock + cardBlock +
+      "</div>";
+  }
+  return '<div class="story-item story-item--left" data-story-idx="' + idx + '">' +
+    cardBlock + nodeBlock + spacerBlock +
+    "</div>";
+}
+
+function generateStoryItems(items) {
+  if (!items || !items.length) return "";
+  return items.map((item, idx) => buildStoryItem(item, idx)).join("");
+}
+
+function applyConfig() {
+  // Meta
+  document.title = siteConfig.meta.title || "";
+  const faviconLink = document.getElementById("favicon-link");
+  if (faviconLink && siteConfig.meta.favicon) {
+    faviconLink.href = siteConfig.meta.favicon;
+  }
+
+  // data-config text elements
+  document.querySelectorAll("[data-config]").forEach((el) => {
+    const path = el.getAttribute("data-config");
+    if (!path) return;
+    const value = getConfigValue(path);
+    if (value != null) {
+      el.textContent = String(value);
+    }
+  });
+
+  // data-config-src elements
+  document.querySelectorAll("[data-config-src]").forEach((el) => {
+    const path = el.getAttribute("data-config-src");
+    if (!path) return;
+    const value = getConfigValue(path);
+    if (value) {
+      el.src = value;
+    }
+  });
+
+  // data-config-placeholder elements
+  document.querySelectorAll("[data-config-placeholder]").forEach((el) => {
+    const path = el.getAttribute("data-config-placeholder");
+    if (!path) return;
+    const value = getConfigValue(path);
+    if (value) {
+      el.placeholder = value;
+    }
+  });
+
+  // Letter paragraphs
+  const letterWrapper = document.getElementById("letter-content-wrapper");
+  if (letterWrapper && siteConfig.letter.paragraphs) {
+    const greeting = siteConfig.letter.greeting || "";
+    const signoff = siteConfig.letter.signoff || "";
+    const signoffName = siteConfig.letter.signoffName || "";
+    const paras = siteConfig.letter.paragraphs
+      .map((p) => '<p class="letter-para">' + p + "</p>")
+      .join("");
+    letterWrapper.innerHTML =
+      '<p class="letter-greeting">' +
+      greeting +
+      "</p>" +
+      paras +
+      '<div class="letter-signoff-block">' +
+      '<p class="letter-signoff">' +
+      signoff +
+      "</p>" +
+      '<p class="letter-signoff letter-name">' +
+      signoffName +
+      "</p>" +
+      "</div>";
+  }
+
+  // Story timeline
+  const storyTimeline = document.getElementById("story-timeline");
+  if (storyTimeline && siteConfig.story.items) {
+    const tlLine = storyTimeline.querySelector(".story-tl-line");
+    const existingItems = storyTimeline.querySelectorAll(".story-item");
+    existingItems.forEach((el) => el.remove());
+    const generated = generateStoryItems(siteConfig.story.items);
+    if (tlLine) {
+      tlLine.insertAdjacentHTML("afterend", generated);
+    } else {
+      storyTimeline.insertAdjacentHTML("afterbegin", generated);
+    }
+  }
+}
+
 window.onload = () => {
-  const fallbackImageSrc = "images/pic1.jpg";
+  applyConfig();
+
+  const fallbackImageSrc = siteConfig.fallbacks.image || "images/pic1.jpg";
   document.addEventListener(
     "error",
     (event) => {
@@ -228,7 +395,7 @@ window.onload = () => {
     ? birthdayText.textContent.trim()
     : "";
   let introCountdownStarted = false;
-  const BGM_BASE_VOLUME = 0.5;
+  const BGM_BASE_VOLUME = siteConfig.audio.bgmVolume ?? 0.5;
   let bgmVolumeTweenFrame = 0;
   let bgmRetryArmed = false;
 
@@ -724,7 +891,7 @@ window.onload = () => {
     });
   }
   (function initCountdown() {
-    const startDate = new Date(2018, 0, 24, 0, 0, 0);
+    const startDate = new Date(siteConfig.countdown.startDate);
     const CIRCUMFERENCE = 2 * Math.PI * 54;
 
     const ids = [
@@ -1069,62 +1236,17 @@ window.onload = () => {
     if (!section || !grid || grid.dataset.ready === "1") return;
     grid.dataset.ready = "1";
 
-    const items = [
-      {
-        src: "images/pic1.jpg",
-        alt: "A sweet memory of us together",
-        title: "Little Days",
-        text: "A small snapshot that feels huge to me. It holds a quiet kind of joy I never want to forget.",
-        r: -8,
-        x: -15,
-        y: -10,
-      },
-      {
-        src: "images/pic1.jpg",
-        alt: "A precious smile from our journey",
-        title: "Favorite Frame",
-        text: "I kept coming back to this one. Your glow makes the whole moment feel softer and brighter.",
-        r: 6,
-        x: 10,
-        y: 15,
-      },
-      {
-        src: "images/pic1.jpg",
-        alt: "A memory where we looked happiest",
-        title: "Brightest Smile",
-        text: "Your smile turns any room into home. I could look at it forever and still want another second.",
-        r: -4,
-        x: 5,
-        y: 30,
-      },
-      {
-        src: "images/pic1.jpg",
-        alt: "A shared moment from our love story",
-        title: "Teacher Vibes",
-        text: "You look so confident here, like you could teach the stars how to shine.",
-        r: 7,
-        x: -10,
-        y: 10,
-      },
-      {
-        src: "images/pic1.jpg",
-        alt: "A precious smile from our journey",
-        title: "Cosmic Mood",
-        text: "This one feels like a mood board for us: calm, dreamy, and a little magical.",
-        r: -12,
-        x: 20,
-        y: -5,
-      },
-      {
-        src: "images/pic1.jpg",
-        alt: "Another chapter of our shared memories",
-        title: "For You",
-        text: "Every detail here was shaped with you in mind, a tiny gift wrapped in pixels.",
-        r: 5,
-        x: 0,
-        y: -20,
-      },
-    ];
+    const items = (siteConfig.gallery.items || []).map(function (item, idx) {
+      return {
+        src: item.src || "",
+        alt: "Gallery photo " + (idx + 1),
+        title: item.title || "",
+        text: item.text || "",
+        r: item.r ?? 0,
+        x: item.x ?? 0,
+        y: item.y ?? 0,
+      };
+    });
 
     grid.innerHTML = items
       .map(
@@ -1436,9 +1558,8 @@ window.onload = () => {
   const wishInput = document.getElementById("wish-input");
   const finaleSection = document.getElementById("section-finale");
 
-  const GOOGLE_FORM_ACTION_URL =
-    "https://docs.google.com/forms/d/e/1FAIpQLSfSCMkix8jCXjBOCu3lL_Gu1RrVDxQ0qUz0tJjsfhiNdC2Ezw/formResponse";
-  const GOOGLE_FORM_WISH_FIELD = "entry.149920223";
+  const GOOGLE_FORM_ACTION_URL = siteConfig.wish.googleFormUrl || "";
+  const GOOGLE_FORM_WISH_FIELD = siteConfig.wish.googleFormField || "";
 
   function submitWishToGoogleForm(message) {
     const formData = new URLSearchParams();

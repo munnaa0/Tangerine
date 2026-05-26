@@ -1,3 +1,4 @@
+import { siteConfig } from "./site-config.js";
 import * as THREE from "three";
 
 export class Starfield {
@@ -88,9 +89,9 @@ export class Starfield {
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.font = 'bold 80px "Times New Roman", Arial, sans-serif';
-    ctx.fillText("The Galaxy Shines for You Today", cw / 2, ch / 2 - 40);
+    ctx.fillText(siteConfig.constellation.line1, cw / 2, ch / 2 - 40);
     ctx.font = 'italic 70px "Times New Roman", Arial, sans-serif';
-    ctx.fillText('" My Universe, My Tangerine "', cw / 2, ch / 2 + 50);
+    ctx.fillText(siteConfig.constellation.line2, cw / 2, ch / 2 + 50);
     const imgData = ctx.getImageData(0, 0, cw, ch).data;
     const points = [];
     for (let y = 0; y < ch; y += 3) {
