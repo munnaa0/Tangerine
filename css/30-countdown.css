@@ -103,9 +103,9 @@
   align-items: center;
   background: linear-gradient(
     145deg,
-    rgba(20, 8, 40, 0.55) 0%,
-    rgba(40, 12, 65, 0.5) 55%,
-    rgba(20, 8, 40, 0.53) 100%
+    rgba(20, 8, 40, 0.65) 0%,
+    rgba(40, 12, 65, 0.6) 55%,
+    rgba(20, 8, 40, 0.63) 100%
   );
   backdrop-filter: blur(12px) saturate(130%) brightness(1.05);
   -webkit-backdrop-filter: blur(12px) saturate(130%) brightness(1.05);
@@ -120,9 +120,19 @@
   transition:
     transform 0.35s ease,
     box-shadow 0.35s ease;
-  transform-style: preserve-3d;
-  perspective: 600px;
   will-change: transform;
+}
+
+/* Solid fallback for browsers with broken backdrop-filter + 3D interaction */
+@supports not (backdrop-filter: blur(1px)) {
+  .countdown-card {
+    background: linear-gradient(
+      145deg,
+      rgba(20, 8, 40, 0.82) 0%,
+      rgba(40, 12, 65, 0.78) 55%,
+      rgba(20, 8, 40, 0.8) 100%
+    );
+  }
 }
 
 .countdown-card:hover {

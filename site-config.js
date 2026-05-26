@@ -23,7 +23,7 @@ export const siteConfig = {
     instruction: "Blow the candle",          // heading above candle
     candlePrompt: "✨ Make a Wish! ✨",      // prompt text
     blowButtonText: "🎂 Blow the Candle!",   // button label
-    birthdayText: "Happy Birthday Tanjila!", // big heading after blow
+    birthdayText: "Happy Birthday Tangerine!", // big heading after blow
   },
 
   // ── Gift ──────────────────────────────────
@@ -42,15 +42,15 @@ export const siteConfig = {
     sealText: "Click to Open",               // label on wax seal
     sealLetter: "T",                         // gold letter on wax seal
     greeting: "Dear Love,",                  // opening line
-    paragraphs: [
-      "I do not know how today feels for you, but for me it is a small miracle. The day you arrived turned ordinary time into a story I still reread.",
-      "I once imagined a neat little note with a list of reasons and favorite moments. Then I realized you do not fit in a list, and every attempt grew into a sky.",
-      "So I built this page as a thank you. I shaped it slowly, detail by detail, because you deserve care that is patient and deliberate.",
-      "Some days the energy faded, and I wondered if it would ever be enough. Still, I kept going, because making this is how I say I love you.",
-      "If you read this, I hope it feels like a quiet hug. If you do not, the effort still means something to me, and I am glad I tried.",
-      "There are many more stories I could tell and many more gifts I want to give. This is only a small chapter, but it is written with all the tenderness I have.",
-      "Happy birthday, my favorite person. May the year ahead be gentle, brave, and bright. I love you today, tomorrow, and every ordinary day in between.",
-    ],
+    // paragraphs: [
+    //   "I do not know how today feels for you, but for me it is a small miracle. The day you arrived turned ordinary time into a story I still reread.",
+    //   "I once imagined a neat little note with a list of reasons and favorite moments. Then I realized you do not fit in a list, and every attempt grew into a sky.",
+    //   "So I built this page as a thank you. I shaped it slowly, detail by detail, because you deserve care that is patient and deliberate.",
+    //   "Some days the energy faded, and I wondered if it would ever be enough. Still, I kept going, because making this is how I say I love you.",
+    //   "If you read this, I hope it feels like a quiet hug. If you do not, the effort still means something to me, and I am glad I tried.",
+    //   "There are many more stories I could tell and many more gifts I want to give. This is only a small chapter, but it is written with all the tenderness I have.",
+    //   "Happy birthday, my favorite person. May the year ahead be gentle, brave, and bright. I love you today, tomorrow, and every ordinary day in between.",
+    // ],
     signoff: "Forever yours,",               // sign-off line
     signoffName: "Your stargazer",           // sign-off name
   },
@@ -240,7 +240,7 @@ export const siteConfig = {
     line1: "This universe is wide and endless...",
     line2: "but its favorite corner, for me,",
     line3: "is you",
-    title: "Happy Birthday, Tanjila",
+    title: "Happy Birthday, Tangerine",
     footerText: "Made with all my heart, just for you",
   },
 
